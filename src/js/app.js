@@ -3,6 +3,7 @@ import './reg-date'
 import './ps-input'
 import './light-conditions'
 import './operating-mode'
+import './hv2-slider'
 
 class Form1223 extends LitElement {
     static get styles() {
@@ -50,15 +51,26 @@ class Form1223 extends LitElement {
                 margin-bottom: 5px;
             }
 
+            #geocrd ps-input, #magcrd ps-input, #LBcrd ps-input {
+                --title-width: 80px;
+                --input-width: 80px;
+            }
+
+
+            #magcrd .title {
+                text-align: end;
+            }
+            #magcrd {
+                display: flex;
+                flex-direction: column;
+                align-items: flex-end;
+            }
+
             #LBcrd {
                 display: grid;
                 grid-template-columns: 1fr 1fr;
                 grid-template-rows: 20px;
-                padding: 5px;
-            }
-
-            #LBcrd ps-input {
-                --title-width: 80px;
+                grid-column: auto / span 2;
             }
 
             #LBcrd ps-input.lcrd {
@@ -71,6 +83,17 @@ class Form1223 extends LitElement {
 
             #HV2 {
                 grid-column: auto / span 2;
+            }
+
+            .coord-wrap {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                grid-gap: 10px;
+            }
+
+            .adc {
+                --input-width: 70px;
+                --title-width: 190px;
             }
         `;
     }
@@ -105,31 +128,44 @@ class Form1223 extends LitElement {
     render() {
         return html`
             <reg-date></reg-date>
-            <div id="geocrd">
-                <div class='title'>Geographic Registration Coordinates</div>
-                <ps-input class="latitude"
-                    .value=${this.latgeo}>Latitude:</ps-input>
-                <ps-input class="longitude"
-                    .value=${this.longeo}>Longitude:</ps-input>
-                <ps-input class="altitude"
-                    .value=${this.altgeo}>Altitude:</ps-input>
+            <div class='coord-wrap'>
+                <div id="geocrd">
+                    <div class='title'>Geographic Registration Coordinates</div>
+                    <ps-input class="latitude"
+                        .value=${this.latgeo}>Latitude:</ps-input>
+                    <ps-input class="longitude"
+                        .value=${this.longeo}>Longitude:</ps-input>
+                    <ps-input class="altitude"
+                        .value=${this.altgeo}>Altitude:</ps-input>
+                </div>
+
+                <div id="magcrd">
+                    <div class='title'>Geomagnetic Event Coordinates</div>
+                    <ps-input class="latitude"
+                        .value=${this.latdm}>Latitude:</ps-input>
+                    <ps-input class="longitude"
+                        .value=${this.londm}>Longitude:</ps-input>
+                    <ps-input class="altitude"
+                        .value=${this.r}>R:</ps-input>
+                </div>
+
+
+                <div id="LBcrd">
+                    <ps-input class="lcrd"
+                        .value=${this.l}>L-coord:</ps-input>
+                    <ps-input class="bcrd"
+                        .value=${this.b}>B-coord:</ps-input>
+                </div>
             </div>
 
-            <div id="magcrd">
-                <div class='title'>Geomagnetic Event Coordinates</div>
-                <ps-input class="latitude"
-                    .value=${this.latdm}>Latitude:</ps-input>
-                <ps-input class="longitude"
-                    .value=${this.londm}>Longitude:</ps-input>
-                <ps-input class="altitude"
-                    .value=${this.r}>R:</ps-input>
-            </div>
+            <div>
+                <div id='op-mode'>
+                    <div class='title'>Operating mode</div>
+                    <op-mode></op-mode>
+                </div>
 
-            <div id="LBcrd">
-                <ps-input class="lcrd"
-                    .value=${this.l}>L-coord:</ps-input>
-                <ps-input class="bcrd"
-                    .value=${this.b}>B-coord:</ps-input>
+                <ps-input class="adc">Analog-to-digital converter:</ps-input>
+
             </div>
 
             <div id='lights'>
@@ -137,12 +173,9 @@ class Form1223 extends LitElement {
                 <light-cnd></light-cnd>
             </div>
 
-            <div id='op-mode'>
-                <div class='title'>Operating mode</div>
-                <op-mode></op-mode>
-            </div>
 
             <div id='HV2'>
+                <hv2-slider></hv2-slider>
             </div>
         `;
     }
