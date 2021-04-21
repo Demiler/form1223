@@ -24,7 +24,7 @@ class OpMode extends LitElement {
             .btn.active {
                 background-color: #cfe6ff;
             }
-            
+
             .btn:not(:last-child) {
                 margin-right: 20px;
             }
@@ -60,10 +60,10 @@ class OpMode extends LitElement {
         this.current.classList.remove('active');
         e.target.classList.add('active');
         this.current = e.target;
-        
-        let event = new CustomEvent('update', { 
+
+        let event = new CustomEvent('update', {
             detail: { value: this.current.innerText },
-            bubbles: true, 
+            bubbles: true,
             composed: true });
         this.dispatchEvent(event);
     }
