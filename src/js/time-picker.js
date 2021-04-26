@@ -41,11 +41,9 @@ class TimePicker extends LitElement {
                 padding: 5px;
                 opacity: 1;
                 z-index: 2;
-                transition: opacity .2s;
             }
 
             #list[hidden] {
-                transition: .2s;
                 opacity: 0;
                 z-index: -999;
             }
@@ -55,11 +53,11 @@ class TimePicker extends LitElement {
                 padding: 4px;
                 text-align: left;
             }
-            
+
             .time:hover {
                 background: #eee;
             }
-            
+
             ::-webkit-scrollbar {
                 background: white;
                 height: 8px;
@@ -105,18 +103,19 @@ class TimePicker extends LitElement {
     firstUpdated() {
         this.inputEl = this.shadowRoot.querySelector("input");
         this.listEl = this.shadowRoot.querySelector("#list");
+
         this.scrollToBest();
+        this.addEventListener('blur', this.change);
     }
 
     render() {
         return html`
             <input type="text" .value=${this.value}
-            @blur=${this.blured}
             @focus=${this.showList}
             @input=${this.removeInvalid}
             @change=${this.change}
             >
-            <div id="list" hidden>
+            <div id="list" tabindex="-1" hidden>
                 ${this.list.map(time => html`
                     <span class='time' @click=${this.determineTime}>${time}</span>
                 `)}
@@ -149,15 +148,15 @@ class TimePicker extends LitElement {
     }
 
     sendChange() {
-        let event = new CustomEvent('change', { 
-            detail: { 
+        let event = new CustomEvent('change', {
+            detail: {
                 string: this.value,
                 hours: this.hours,
                 mins: this.mins,
                 secs: this.secs,
                 time: this.time
             },
-            bubbles: true, 
+            bubbles: true,
             composed: true });
         this.dispatchEvent(event);
     }
@@ -192,10 +191,6 @@ class TimePicker extends LitElement {
 
     showList() {
         this.listEl.hidden = false;
-    }
-
-    blured(e) {
-        setTimeout(() => this.change(), 200);
     }
 }
 

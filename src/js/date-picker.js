@@ -5,10 +5,8 @@ import * as utils from './utils'
 class DatePicker extends LitElement {
     static get styles() {
         return css`
-
             :host {
                 width: inherit;
-
             }
 
             input {
@@ -37,7 +35,6 @@ class DatePicker extends LitElement {
                 display: block;
                 opacity: 1;
                 position: absolute;
-                transition: opacity .2s;
                 z-index: 2;
                 box-shadow: 0 0 5px 1px #000000a0;
                 left: -5px;
