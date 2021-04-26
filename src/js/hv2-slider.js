@@ -39,10 +39,12 @@ class HV2Slider extends LitElement {
                 display: flex;
                 width: 100%;
                 height: 100%;
+                font-size: 10pt;
             }
 
             .tick {
                 /*width: 80px;*/
+                width: 100%;
 
                 text-align: center;
                 height: 100%;
@@ -82,6 +84,7 @@ class HV2Slider extends LitElement {
 
             input {
                 width: 100%;
+                margin: 0;
             }
 
             .preview {
@@ -104,44 +107,65 @@ class HV2Slider extends LitElement {
         this.code = this.MIN;
         this.intensity = this.codeToIntensity(this.code);
         this.ticks = [];
-        this.tickWidth = 60;
+        this.minTickWidth = 70;
+        this.maxTickWidth = 100;
     }
 
     firstUpdated() {
-        let tickWidth = this.tickWidth;
-
         let width = this.shadowRoot.querySelector("#slider").offsetWidth;
-        let ticksCount = parseInt(width / tickWidth);
-        console.log(width, ticksCount);
+        this.fullRecalc(width);
+    }
 
-        //let step = Math.trunc((tickWidth * (this.MAX - this.MIN + 1)) / width);
-        let step = (tickWidth * (this.MAX - this.MIN + 1)) / width;
-        this.ticks.push({ code: this.MIN, ints: this.codeToIntensity(this.MIN) });
-
-        for (let i = 1; i < ticksCount - 1; i++) {
-            let code = Math.trunc(i * step + this.MIN + step / 2);
-            this.ticks.push({ code, ints: this.codeToIntensity(code) });
+    fullRecalc(width) {
+        let tickWidth = this.minTickWidth;
+        let lowestMod = this.maxTickWidth;
+        for (let i = this.minTickWidth; i < this.maxTickWidth; i++) {
+            let mod = width % i;
+            if (mod < lowestMod) {
+                tickWidth = i;
+                lowestMod = mod;
+            }
+            if (mod === 0)
+                break;
         }
+        this.tickWidth = tickWidth;
 
-        this.ticks.push({ code: this.MAX, ints: this.codeToIntensity(this.MAX) });
+        const valsCnt = this.MAX - this.MIN + 1;
+
+        let step = Math.floor(tickWidth * valsCnt / width) + 1;
+        let ticksCount = Math.round(width / tickWidth);
+        //let initialStep = Math.trunc((valsCnt / width) * (tickWidth / 2)) - 1;
+
+        this.recalculate(step, ticksCount, 9); //9 - for 720px
+    }
+
+    recalculate(step, ticksCount, initialStep) {
+        this.ticks = [];
+        this.ticks.push(this.MIN);
+        for (let i = 1; i < ticksCount - 1; i++) {
+            let code = Math.trunc(i * step + this.MIN + initialStep);
+            this.ticks.push(code);
+        }
+        this.ticks.push(this.MAX);
         this.requestUpdate();
     }
 
     render() {
         return html`
             <div id='slider'>
+                <input type="range" min=${this.MIN} max=${this.MAX}
+                    @input=${this.changeValue} .value=${this.code}>
                 <div class='ticks'>
-                    ${this.ticks.map(tick => html`
-                        <div class='tick' style="width: ${this.tickWidth}px">
+                    ${this.ticks.map(code => html`
+                        <div class='tick' style="width:${this.tickWidth}px">
                             <span class='holder'></span>
-                            <span class='codeVal'>${tick.code}</span>
-                            <span class='intsVal'>${tick.ints}</span>
+                            <span class='codeVal'>${code}</span>
+                            <span class='intsVal'>${this.codeToIntensity(code)}</span>
                         </div>
                     `)}
                 </div>
 
-                <input type="range" min=${this.MIN} max=${this.MAX}
-                    @input=${this.changeValue} .value=${this.value}>
+
             </div>
             <div class='preview-wrap'>
                 <input class='preview' id="code" .value=${this.code}>
