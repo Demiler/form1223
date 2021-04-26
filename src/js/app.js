@@ -96,7 +96,10 @@ class Form1223 extends LitElement {
 
     render() {
         return html`
-            <reg-date></reg-date>
+            <div id="reg-data">
+                <div class='title'>Registration date</div>
+                <reg-date></reg-date>
+            </div>
 
             <div class='coords' id="geocrd">
                 <div class='title'>Geographic Registration Coordinates</div>
