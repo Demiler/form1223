@@ -1,88 +1,78 @@
 import { LitElement, html, css } from 'lit-element'
-import './dropdown-menu'
 import 'app-datepicker'
+import './date-picker'
+import './time-picker'
+import * as utils from './utils'
 
 class RegDate extends LitElement {
     static get styles() {
         return css`
-            #reg-date {
-                width: 300px;
-                height: 50px;
-                box-sizing: border-box; position: relative;
+            :host {
+                position: relative;
             }
 
-            #date-preview {
+            .value {
+                margin-bottom: 10px;
+            }
+            
+            .time {
+                width: 80px;
+                text-align: center;
             }
 
-            #date-preview .title {
-                background-color: white;
-                padding: 0 5px;
-                border-radius: 5px;
-                margin-bottom: 5px;
+            .date {
+                width: 120px;
+                margin-right: 8px;
             }
 
-            #date-preview .value {
-                border: 1.2px solid grey;
-                border-radius: 5px;
-                padding: 2px 5px;
+            .label {
+                display: inline-block;
+                margin-right: 8px;
+                width: 50px;
             }
-
-            #date-picker {
-                display: none;
-                opacity: .2;
-                position: absolute;
-                top: 50px;
-                transition: .2s;
-            }
-
-            #date-picker[hidden] {
-                top: -100%;
-            }
-
         `;
     }
 
     static get properties() {
         return {
-            dt: { type: String },
+            value: { type: Object },
         };
     }
 
     constructor() {
         super();
-        this.dt = "nothing";
-        this.elements = {};
+        let curDate = utils.getCurrentDate();
+        this.value = { from: curDate, to: curDate };
     }
 
     firstUpdated() {
-        this.elements.date = this.shadowRoot.querySelector("#date-picker");
+        this.dateEl = this.shadowRoot.querySelector("#date-picker");
     }
 
     render() {
         return html`
-            <div id="reg-date">
-                <div id="date-preview" @click=${this.openPicker}>
-                    <div class='title'>Registration date</div>
-                    <div class='value'>${this.dt}</div>
-                </div>
-                <app-datepicker
-                    id = "date-picker"
-                    @datepicker-value-updated = ${this.updateDate}
-                    inline
-                    hidden
-                ></app-datepicker>
+            <div class='value' id="from">
+                <span class='label'>From</span>
+                <date-picker class='date'
+                @focus=${this.chooseDate}
+                ></date-picker>
+
+                <time-picker class='time'>
+                </time-picker>
+            </div>
+
+            <div class='value' id="to">
+                <span class='label'>To</span>
+                <date-picker class='date'
+                @focus=${this.chooseDate}
+                ></date-picker>
+
+                <time-picker class='time'>
+                </time-picker>
             </div>
         `;
     }
 
-    updateDate(e) {
-        console.log(e);
-        this.dt = e.detail.value;
-    }
-
-    openPicker() {
-        this.elements.date.hidden = !this.elements.date.hidden;
-    }
 };
 
 customElements.define('reg-date', RegDate);
