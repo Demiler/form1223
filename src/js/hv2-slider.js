@@ -136,7 +136,7 @@ class HV2Slider extends LitElement {
         let ticksCount = Math.round(width / tickWidth);
         //let initialStep = Math.trunc((valsCnt / width) * (tickWidth / 2)) - 1;
 
-        this.recalculate(step, ticksCount, 9); //9 - for 720px
+        this.recalculate(step, ticksCount, 5); //9 - for 720px
     }
 
     recalculate(step, ticksCount, initialStep) {
