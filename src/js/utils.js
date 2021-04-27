@@ -28,6 +28,25 @@ export const getMonthFromString = (mon) => {
    return new Date(Date.parse(mon +" 1, 2000")).getMonth()
 }
 
+export const isObjectType = (value) => {
+    return value != null && typeof value == 'object' && !Array.isArray(value);
+}
+
+
+export const isObjectFilled = (obj) => {
+    for (let key in obj) {
+        if (isObjectType(obj[key])) {
+            const ret = isObjectFilled(obj[key]);
+            if (ret !== undefined)
+                return [ key, ...ret ];
+        }
+        else if (obj[key] === undefined || obj[key] === null || obj[key] === "")
+            return [ key ];
+    }
+    return undefined;
+}
+
+
 Math.clamp = (min, max, val) => {
     return Math.min(max, Math.max(min, val));
 }

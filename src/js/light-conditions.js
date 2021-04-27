@@ -106,7 +106,6 @@ class LightCondition extends LitElement {
         this.valBtns.forEach(button => button.disabled = false);
     }
 
-
     changeValue(target, newVal) {
         if (this.now === "night") {
             this.value = newVal;
@@ -141,10 +140,17 @@ class LightCondition extends LitElement {
         }
 
         let event = new CustomEvent('update', {
-            detail: { condition: this.now, value: this.value },
+            detail: this.getData(),
             bubbles: true,
             composed: true });
         this.dispatchEvent(event);
+    }
+
+    getData() {
+        return {
+            condition: this.now,
+            value: this.value
+        };
     }
 }
 

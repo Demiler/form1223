@@ -81,10 +81,7 @@ class RegDate extends LitElement {
 
     sendChange() {
         let event = new CustomEvent('reg-update', {
-            detail: {
-                from: this.from,
-                to: this.to
-            },
+            detail: this.getData(),
             bubbles: true,
             composed: true });
         this.dispatchEvent(event);
@@ -100,6 +97,13 @@ class RegDate extends LitElement {
         const name = e.target.getAttribute("name");
         this[name].date = e.detail;
         this.sendChange();
+    }
+
+    getData() {
+        return {
+            from: this.from,
+            to: this.to
+        };
     }
 };
 
