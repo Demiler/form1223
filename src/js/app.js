@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit-element'
+import * as utils from './utils'
 import './reg-date'
 import './ps-input'
 import './light-conditions'
@@ -24,7 +25,7 @@ class Form1223 extends LitElement {
                 -moz-column-gap: 25px;
                 column-gap: 25px;*/
 
-                width: 800px;
+                /*width: 800px;*/
                 font-family: sans;
             }
 
@@ -45,8 +46,12 @@ class Form1223 extends LitElement {
             }
 
             .title {
-                text-decoration: underline;
-                margin-bottom: 5px;
+                margin: -5px -5px 5px;
+                padding: 5px;
+                background: #e6e6e6;
+                border-top-left-radius: inherit;
+                border-top-right-radius: inherit;
+                border-bottom: 1px solid #00000040;
             }
 
             #HV2, #result {
@@ -56,6 +61,28 @@ class Form1223 extends LitElement {
             .adc {
                 --input-width: 70px;
                 --title-width: 190px;
+            }
+
+            #result {
+                position: relative;
+                overflow: hidden;
+            }
+
+            #reminder {
+                display: block;
+                position: absolute;
+                padding: 8px;
+                background-color: #faaeb8;
+
+                top: 0px;
+                right: 0;
+                transition: .3s;
+            }
+
+            #reminder[hidden] {
+                display: block;
+                top: calc(-100% - 8px);
+                transition: .3s;
             }
         `;
     }
@@ -74,6 +101,7 @@ class Form1223 extends LitElement {
             conditions: { type: Object },
             mode:       { type: String },
             max_adc:    { type: Object },
+            reminderText: { type: String },
         };
     }
 
@@ -89,9 +117,17 @@ class Form1223 extends LitElement {
         this.l =      { from: null, to: null };
         this.b =      { from: null, to: null };
         this.max_adc ={ from: null, to: null };
+        this.mode    = "EAS";
+
+        this.reminderText = "";
     }
 
     firstUpdated() {
+        this.conditions = this.shadowRoot.querySelector("light-cnd").getData();
+        this.hv2 = this.shadowRoot.querySelector("hv2-slider").getData();
+        this.dt = this.shadowRoot.querySelector("reg-date").getData();
+
+        this.reminderEl = this.shadowRoot.querySelector("#reminder");
     }
 
     render() {
@@ -122,17 +158,17 @@ class Form1223 extends LitElement {
             </div>
 
             <div id="LBcrd">
+                <div class='title'>Geodetic Coordinates</div>
+
                 <fromto-input class="lcrd" @update=${this.updateRange}
                     name="l" .value=${this.l}>L-coord:</fromto-input>
                 <fromto-input class="bcrd" @update=${this.updateRange}
                     name="b" .value=${this.b}>B-coord:</fromto-input>
             </div>
 
-            <div>
-                <div id='op-mode'>
-                    <div class='title'>Operating mode</div>
-                    <op-mode .value=${this.mode} @update=${this.updateOpMode}></op-mode>
-                </div>
+            <div id="op-mode">
+                <div class='title'>Operating mode</div>
+                <op-mode .value=${this.mode} @update=${this.updateOpMode}></op-mode>
 
                 <fromto-input class="adc" @update=${this.updateRange}
                 name="max_adc" .min=${0} .max=${1024} .value=${this.max_adc}
@@ -153,8 +189,19 @@ class Form1223 extends LitElement {
             <div id="result">
                 <button id="send-data" @click=${this.trySend}>Send</button>
                 <div id="files"></div>
+
+                <div id="reminder" hidden>
+                    ${this.reminderText}
+                </div>
             </div>
+
         `;
+    }
+
+    showReminder(text) {
+        this.reminderText = text;
+        this.reminderEl.hidden = false;
+        setTimeout(()=>this.reminderEl.hidden = true, 2000);
     }
 
     trySend() {
@@ -164,16 +211,19 @@ class Form1223 extends LitElement {
             latdm: this.latdm, londm: this.londm, r: this.r,
             l: this.l, b: this.b,
             conditions: this.conditions,
-            code: this.code, J: this.J,
             mode: this.mode,
-            max_adc: this.max_adc
+            max_adc: this.max_adc,
+            hv2: this.hv2,
         };
-        console.log(blob);
+        this.debug = blob;
+        const arr = utils.isObjectFilled(blob);
+        if (arr !== undefined) {
+            this.showReminder("There is something wrong with: " + arr.join(' -> '));
+        }
     }
 
     updateIntens(e) {
-        this.code = e.detail.code;
-        this.J = e.detail.intensity;
+        this.hv2 = e.detail;
     }
 
     updateLigCond(e) {
