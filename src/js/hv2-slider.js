@@ -182,6 +182,15 @@ class HV2Slider extends LitElement {
     changeValue(e) {
         this.code = Number(e.target.value);
         this.intensity = this.codeToIntensity(this.code);
+        this.sendChange()
+    }
+
+    sendChange() {
+        let event = new CustomEvent('update', {
+            detail: { code: this.code, intensity: this.intensity },
+            bubbles: true,
+            composed: true });
+        this.dispatchEvent(event);
     }
 }
 

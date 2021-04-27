@@ -35,44 +35,72 @@ class RegDate extends LitElement {
 
     static get properties() {
         return {
-            value: { type: Object },
         };
     }
 
     constructor() {
         super();
-        let curDate = utils.getCurrentDate();
-        this.value = { from: curDate, to: curDate };
+        this.from = { date: null, time: null };
+        this.to = { date: null, time: null };
     }
 
     firstUpdated() {
-        this.dateEl = this.shadowRoot.querySelector("#date-picker");
+        this.from.date = this.shadowRoot.querySelector("#from .date").getData();
+        this.from.time = this.shadowRoot.querySelector("#from .time").getData();
+        this.to.date   = this.shadowRoot.querySelector("#to .date").getData();
+        this.to.time   = this.shadowRoot.querySelector("#to .time").getData();
     }
 
     render() {
         return html`
             <div class='value' id="from">
                 <span class='label'>From</span>
-                <date-picker class='date'
-                @focus=${this.chooseDate}
+
+                <date-picker name="from" class='date'
+                @date-update=${this.updateDate}
                 ></date-picker>
 
-                <time-picker class='time'>
-                </time-picker>
+                <time-picker name="from" class='time'
+                @time-update=${this.updateTime}
+                ></time-picker>
             </div>
 
             <div class='value' id="to">
                 <span class='label'>To</span>
-                <date-picker class='date'
-                @focus=${this.chooseDate}
+
+                <date-picker name="to" class='date'
+                @date-update=${this.updateDate}
                 ></date-picker>
 
-                <time-picker class='time'>
-                </time-picker>
+                <time-picker name="to" class='time'
+                @time-update=${this.updateTime}
+                ></time-picker>
             </div>
         `;
     }
 
+    sendChange() {
+        let event = new CustomEvent('reg-update', {
+            detail: {
+                from: this.from,
+                to: this.to
+            },
+            bubbles: true,
+            composed: true });
+        this.dispatchEvent(event);
+    }
+
+    updateTime(e) {
+        const name = e.target.getAttribute("name");
+        this[name].time = e.detail;
+        this.sendChange();
+    }
+
+    updateDate(e) {
+        const name = e.target.getAttribute("name");
+        this[name].date = e.detail;
+        this.sendChange();
+    }
 };
 
 customElements.define('reg-date', RegDate);

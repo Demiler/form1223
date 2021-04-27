@@ -148,16 +148,11 @@ class TimePicker extends LitElement {
     }
 
     sendChange() {
-        let event = new CustomEvent('change', {
-            detail: {
-                string: this.value,
-                hours: this.hours,
-                mins: this.mins,
-                secs: this.secs,
-                time: this.time
-            },
+        let event = new CustomEvent('time-update', {
+            detail: this.getData(),
             bubbles: true,
-            composed: true });
+            composed: true
+        });
         this.dispatchEvent(event);
     }
 
@@ -175,6 +170,7 @@ class TimePicker extends LitElement {
 
     determineTime(e) {
         this.setDetTime(e.target.innerText);
+        this.hideList();
     }
 
     setDetTime(time) { //time = '00:00'
@@ -191,6 +187,16 @@ class TimePicker extends LitElement {
 
     showList() {
         this.listEl.hidden = false;
+    }
+
+    getData() {
+        return {
+            string: this.value,
+            hours: this.hours,
+            mins: this.mins,
+            secs: this.secs,
+            time: this.time
+        };
     }
 }
 

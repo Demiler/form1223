@@ -105,7 +105,6 @@ class DatePicker extends LitElement {
         this.year = Number(vals[0]);
         this.formatValue();
         this.changeDate();
-        this.sendChange();
     }
 
     parse(e) {
@@ -145,25 +144,12 @@ class DatePicker extends LitElement {
         this.sendChange();
     }
 
-    updateTime() {
-        let event = new CustomEvent('time-change', {
-            detail: {
-            },
-            bubbles: true,
-            composed: true });
-        this.dispatchEvent(event);
-    }
-
     sendChange(type) {
-        let event = new CustomEvent('change', {
-            detail: {
-                string: this.value,
-                day: this.day,
-                month: this.month,
-                year: this.year,
-            },
+        let event = new CustomEvent('date-update', {
+            detail: this.getData(),
             bubbles: true,
-            composed: true });
+            composed: true
+        });
         this.dispatchEvent(event);
     }
 
@@ -178,6 +164,15 @@ class DatePicker extends LitElement {
     checkKeyUp(e) {
         if (e.key === "Enter")
             this.hidePicker();
+    }
+
+    getData() {
+        return {
+            string: this.value,
+            day: this.day,
+            month: this.month,
+            year: this.year,
+        }
     }
 }
 

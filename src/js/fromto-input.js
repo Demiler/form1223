@@ -53,6 +53,8 @@ class FromToInput extends LitElement {
         return {
             active: { type: Boolean },
             value: { type: Object },
+            min: { type: Number },
+            max: { type: Number },
         };
     }
 
@@ -74,6 +76,9 @@ class FromToInput extends LitElement {
             this.error("from");
             this.requestUpdate();
         }
+
+        this.inputFromEl = this.shadowRoot.querySelector("#from");
+        this.inputToEl = this.shadowRoot.querySelector("#to");
     }
 
     render() {
@@ -84,6 +89,7 @@ class FromToInput extends LitElement {
             @focus=${this.activate}
             @change=${this.change}
             @input=${this.change}
+            @keyup=${this.onKeyUp}
             ></labled-input>
 
             <labled-input id="to" class='value' label="To"
@@ -91,20 +97,32 @@ class FromToInput extends LitElement {
             @focus=${this.activate}
             @input=${this.change}
             @change=${this.change}
+            @keyup=${this.onKeyUp}
             ></labled-input>
         `;
+    }
+
+    onKeyUp(e) {
+        if (e.code === "Enter") {
+            e.target.blur();
+            if (e.target === this.inputFromEl) {
+                this.inputToEl.focus();
+            }
+            this.sendChange();
+        }
     }
 
     swap() {
         let temp = this.value.from;
         this.value.from = this.value.to;
         this.value.to = temp;
+        this.sendChange();
         this.requestUpdate();
     }
 
-    updateVal() {
+    sendChange() {
         let event = new CustomEvent('update', { 
-            detail: { value: this.value },
+            detail: { from: this.value.from, to: this.value.to },
             bubbles: true, 
             composed: true });
         this.dispatchEvent(event);
@@ -117,15 +135,21 @@ class FromToInput extends LitElement {
         }
 
         let newVal = Number(e.target.value);
-        console.log(e.target.value, newVal);
 
         if (isNaN(newVal)) {
             this.error(e.target.id);
         }
         else {
             this.unerror(e.target.id);
+
+            if (this.min !== undefined)
+                newVal = Math.max(newVal, this.min);
+            if (this.max !== undefined)
+                newVal = Math.min(newVal, this.max);
+
             this.value[e.target.id] = newVal;
-            this.updateVal();
+            e.target.value = String(newVal);
+            this.sendChange();
             this.requestUpdate();
         }
     }

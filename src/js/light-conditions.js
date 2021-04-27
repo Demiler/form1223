@@ -66,8 +66,8 @@ class LightCondition extends LitElement {
 
     constructor() {
         super();
-        this.now = "Day";
-        this.value = "Min";
+        this.now = "day";
+        this.value = "min";
     }
 
     firstUpdated() {
@@ -108,7 +108,7 @@ class LightCondition extends LitElement {
 
 
     changeValue(target, newVal) {
-        if (this.now === "NIGHT") {
+        if (this.now === "night") {
             this.value = newVal;
             this.updateTarget(this.valEl, target);
         }
@@ -125,31 +125,26 @@ class LightCondition extends LitElement {
     }
 
     pick(e) {
-        let oldVal = this.val;
-        let oldNow = this.now;
-
-        switch (e.target.innerText) {
-            case "DAY":
-                this.now = "DAY";
+        switch (e.target.id) {
+            case "day":
+                this.now = "day";
                 this.disableButtons();
                 this.updateTarget(this.nowEl, e.target);
                 break;
-            case "NIGHT":
-                this.now = "NIGHT";
+            case "night":
+                this.now = "night";
                 this.enableButtons();
                 this.updateTarget(this.nowEl, e.target);
                 break;
             default:
-                this.changeValue(e.target, e.target.innerText);
+                this.changeValue(e.target, e.target.id);
         }
 
-        if (oldVal !== this.val || oldNow !== this.now) {
-            let event = new CustomEvent('update', { 
-                detail: { value: this.value },
-                bubbles: true, 
-                composed: true });
-            this.dispatchEvent(event);
-        }
+        let event = new CustomEvent('update', {
+            detail: { condition: this.now, value: this.value },
+            bubbles: true,
+            composed: true });
+        this.dispatchEvent(event);
     }
 }
 
