@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit-element'
+import { server } from './serverApi'
 import * as utils from './utils'
 import './reg-date'
 import './ps-input'
@@ -120,6 +121,9 @@ class Form1223 extends LitElement {
         this.mode    = "EAS";
 
         this.reminderText = "";
+        this.server = server;
+
+        server.connect();
     }
 
     firstUpdated() {
@@ -220,6 +224,8 @@ class Form1223 extends LitElement {
         if (arr !== undefined) {
             this.showReminder("There is something wrong with: " + arr.join(' -> '));
         }
+        else
+            server.send(JSON.stringify(blob));
     }
 
     updateIntens(e) {
