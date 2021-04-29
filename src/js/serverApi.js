@@ -1,9 +1,11 @@
 class Api {
     constructor() {
         this.retry = false;
+        this.kill = true;
     }
 
     connect() {
+        if (this.kill) return;
         if (this.retry) {
             this.retry = false;
             return;

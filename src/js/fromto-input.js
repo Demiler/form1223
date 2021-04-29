@@ -84,7 +84,7 @@ class FromToInput extends LitElement {
     render() {
         return html`
             <slot class='title'></slot>
-            <labled-input id="from" class='value' label="From"
+            <labled-input id="from" class='value' label="От"
             .value=${this.value.from}
             @focus=${this.activate}
             @change=${this.change}
@@ -92,7 +92,7 @@ class FromToInput extends LitElement {
             @keyup=${this.onKeyUp}
             ></labled-input>
 
-            <labled-input id="to" class='value' label="To"
+            <labled-input id="to" class='value' label="До"
             .value=${this.value.to}
             @focus=${this.activate}
             @input=${this.change}

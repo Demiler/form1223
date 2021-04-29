@@ -1,5 +1,6 @@
-const MONTHS =
-    ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+export const MONTHS =
+    //["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    ["янв", "фев", "мар", "апр", "май", "июн", "июл", "авг", "сен", "окт", "ноя", "дек"];
 
 
 export const redispatchEvent = (e) => {
@@ -25,7 +26,10 @@ export const isValidDate = (d) => {
 }
 
 export const getMonthFromString = (mon) => {
-   return new Date(Date.parse(mon +" 1, 2000")).getMonth()
+    if (mon === undefined || mon === null) return -1;
+    mon = mon.toLowerCase().slice(0, 3);
+    return MONTHS.indexOf(mon);
+    //return new Date(Date.parse(mon +" 1, 2000")).getMonth()
 }
 
 export const isObjectType = (value) => {

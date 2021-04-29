@@ -22,6 +22,7 @@ class LabledInput extends LitElement {
             .label.active {
                 transform: scale(var(--scale)) translateY(
                     calc(-1.4 * var(--font-size) * var(--scale)));
+                opacity: .5;
             }
 
             input {

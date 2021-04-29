@@ -137,51 +137,51 @@ class Form1223 extends LitElement {
     render() {
         return html`
             <div id="reg-data">
-                <div class='title'>Registration date</div>
+                <div class='title'>Дата Регистрации</div>
                 <reg-date @reg-update=${this.updateDateRange}></reg-date>
             </div>
 
             <div class='coords' id="geocrd">
-                <div class='title'>Geographic Registration Coordinates</div>
+                <div class='title'>Координаты Географической Регистрации</div>
                 <fromto-input class="latitude" @update=${this.updateRange}
-                    name="latgeo" .value=${this.latgeo}>Latitude:</fromto-input>
+                    name="latgeo" .value=${this.latgeo}>Широта:</fromto-input>
                 <fromto-input class="longitude" @update=${this.updateRange}
-                    name="longeo" .value=${this.longeo}>Longitude:</fromto-input>
+                    name="longeo" .value=${this.longeo}>Долгота:</fromto-input>
                 <fromto-input class="altitude" @update=${this.updateRange}
-                    name="altgeo" .value=${this.altgeo}>Altitude:</fromto-input>
+                    name="altgeo" .value=${this.altgeo}>Высота:</fromto-input>
             </div>
 
             <div class='coords' id="magcrd">
-                <div class='title'>Geomagnetic Event Coordinates</div>
+                <div class='title'>Координаты Геомагнитного События</div>
                 <fromto-input class="latitude" @update=${this.updateRange}
-                    name="latdm" .value=${this.latdm}>Latitude:</fromto-input>
+                    name="latdm" .value=${this.latdm}>Широта:</fromto-input>
                 <fromto-input class="longitude" @update=${this.updateRange}
-                    name="londm" .value=${this.londm}>Longitude:</fromto-input>
+                    name="londm" .value=${this.londm}>Долгота:</fromto-input>
                 <fromto-input class="altitude" @update=${this.updateRange}
                     name="r" .value=${this.r}>R:</fromto-input>
             </div>
 
             <div id="LBcrd">
-                <div class='title'>Geodetic Coordinates</div>
+                <div class='title'>Геодезические Координаты</div>
 
                 <fromto-input class="lcrd" @update=${this.updateRange}
-                    name="l" .value=${this.l}>L-coord:</fromto-input>
+                    name="l" .value=${this.l}>L-коорд:</fromto-input>
                 <fromto-input class="bcrd" @update=${this.updateRange}
-                    name="b" .value=${this.b}>B-coord:</fromto-input>
+                    name="b" .value=${this.b}>B-коорд:</fromto-input>
             </div>
 
             <div id="op-mode">
-                <div class='title'>Operating mode</div>
+                <div class='title'>Режим Работы</div>
                 <op-mode .value=${this.mode} @update=${this.updateOpMode}></op-mode>
 
                 <fromto-input class="adc" @update=${this.updateRange}
                 name="max_adc" .min=${0} .max=${1024} .value=${this.max_adc}
-                >Analog-to-digital converter:</fromto-input>
+                >Аналогово-цифровой Преобразователь:</fromto-input>
 
             </div>
 
             <div id='lights'>
-                <div class='title'>Lightning conditions</div>
+                <div class='title'>Условия Освщенности</div>
                 <light-cnd @update=${this.updateLigCond}></light-cnd>
             </div>
 

@@ -26,6 +26,10 @@ class LightCondition extends LitElement {
                 cursor: pointer;
                 height: 40px;
             }
+            
+            #day, #night {
+                text-transform: none;
+            }
 
             .item.active {
                 background-color: #cfe6ff;
@@ -81,14 +85,18 @@ class LightCondition extends LitElement {
         ];
         this.nowEl.tar.classList.add('active');
         this.valEl.tar.classList.add('active');
-        this.disableButtons();
+        this.enableButtons();
     }
 
     render() {
         return html`
             <div id="daynight">
-                <button class='item' id="day" @click=${this.pick}  >Day</button>
-                <button class='item' id="night" @click=${this.pick}>Night</button>
+                <button class='item' id="day" @click=${this.pick}  >
+                    ДЕНЬ (avg_hv <= 128)
+                </button>
+                <button class='item' id="night" @click=${this.pick}>
+                    НОЧЬ (avg_hv > 128)
+                </button>
             </div>
             <div id="values">
                 <button class='item' id="min" @click=${this.pick} >Min</button>
@@ -107,7 +115,7 @@ class LightCondition extends LitElement {
     }
 
     changeValue(target, newVal) {
-        if (this.now === "night") {
+        if (this.now === "day") {
             this.value = newVal;
             this.updateTarget(this.valEl, target);
         }
@@ -127,12 +135,12 @@ class LightCondition extends LitElement {
         switch (e.target.id) {
             case "day":
                 this.now = "day";
-                this.disableButtons();
+                this.enableButtons();
                 this.updateTarget(this.nowEl, e.target);
                 break;
             case "night":
                 this.now = "night";
-                this.enableButtons();
+                this.disableButtons();
                 this.updateTarget(this.nowEl, e.target);
                 break;
             default:

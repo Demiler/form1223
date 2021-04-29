@@ -31,6 +31,11 @@ class DatePicker extends LitElement {
                 border-color: #87c1ff;
             }
 
+            input.error {
+                outline: none;
+                border-color: #f7c1ff;
+            }
+
             #date-picker {
                 display: block;
                 opacity: 1;
@@ -56,9 +61,6 @@ class DatePicker extends LitElement {
 
     constructor() {
         super();
-        this.MONTHS =
-            ["Jan", "Feb", "Mar", "Apr", "May",
-            "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
         const today = new Date();
         this.day = today.getDate();
@@ -66,20 +68,29 @@ class DatePicker extends LitElement {
         this.year = today.getFullYear();
 
         this.min = "2000-1-1";
-        this.max = this.formatToPickerDate();
-        this.formatValue();
-        this.date = this.value;
+        this.max = this.formatDate();
+        this.value = undefined;
+        this.prettyDate = this.makePretty();
     }
 
     firstUpdated() {
         this.inputEl = this.shadowRoot.querySelector("#date-input");
         this.pickerEl = this.shadowRoot.querySelector("#date-picker");
         this.addEventListener('blur', this.hidePicker);
+
+        if (this.value === undefined)
+            this.value = this.max;
+        else {
+            this.setDateFromString(this.value);
+            this.prettyDate = this.makePretty();
+            this.requestUpdate();
+        }
     }
 
     render() {
         return html`
-            <input id="date-input" .value=${this.date} type="text"
+            <input id="date-input" value=${this.prettyDate} type="text"
+            spellcheck="false"
             @focus=${this.showPicker}
             @input=${this.parse}
             @change=${this.changeDate}
@@ -87,6 +98,7 @@ class DatePicker extends LitElement {
             >
 
             <app-datepicker tabindex="-1"
+                value=${this.value}
                 id="date-picker"
                 @datepicker-value-updated=${this.updateDate}
                 firstDayOfWeek="1"
@@ -98,49 +110,59 @@ class DatePicker extends LitElement {
         `;
     }
 
-    updateDate(e) {
-        const vals = e.detail.value.split('-');
+    setDateFromString(str) {
+        const vals = str.split('-');
         this.day = Number(vals[2]);
         this.month = Number(vals[1]) - 1;
         this.year = Number(vals[0]);
-        this.formatValue();
+    }
+
+    updateDate(e) {
+        this.setDateFromString(e.target.value);
+        this.value = this.formatDate();
+        this.prettyDate = this.makePretty();
         this.changeDate();
     }
 
     parse(e) {
+        if (e.target.value === "")
+            return;
+
         let vals = e.target.value.replace(/[\\\/ -]+/g, '/').split('/');
         const date = new Date(
             vals[2] < 100 ? 2000 + Number(vals[2]) : vals[2],
             utils.getMonthFromString(vals[1]),
             vals[0]);
 
-        if (!utils.isValidDate(date) || Number(date.getFullYear()) < 2000)
+        const day = date.getDate();
+        const month = date.getMonth();
+        const year = date.getFullYear();
+        const value = this.formatDate(day, month, year.pad(4));
+        console.log(day, month, year, value);
+
+        if (!utils.isValidDate(date) || value < this.min || value > this.max)
             return;
 
+        this.day = day;
+        this.month = month;
+        this.year = year;
 
-        this.day = date.getDate();
-        this.month = date.getMonth();
-        this.year = date.getFullYear();
-
-        this.setPickerDate();
-        this.formatValue();
+        this.value = value;
+        this.pickerEl.value = this.value;
+        this.prettyDate = this.makePretty();
         this.sendChange();
     }
 
-    formatToPickerDate() {
-        return this.year + "-" + (this.month + 1) + "-" + this.day;
+    makePretty() {
+        return this.day + " " + utils.MONTHS[this.month] + " " + this.year;
     }
 
-    setPickerDate() {
-        this.pickerEl.value = this.formatToPickerDate();
-    }
-
-    formatValue() {
-        this.value = this.day + " " + this.MONTHS[this.month] + " " + this.year;
+    formatDate(day = this.day, month = this.month, year = this.year) {
+        return year + "-" + (month + 1) + "-" + day;
     }
 
     changeDate(e) {
-        this.inputEl.value = this.value;
+        this.inputEl.value = this.prettyDate;
         this.sendChange();
     }
 

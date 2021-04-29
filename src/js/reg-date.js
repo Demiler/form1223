@@ -14,7 +14,7 @@ class RegDate extends LitElement {
             .value {
                 margin-bottom: 10px;
             }
-            
+
             .time {
                 width: 80px;
                 text-align: center;
@@ -54,9 +54,10 @@ class RegDate extends LitElement {
     render() {
         return html`
             <div class='value' id="from">
-                <span class='label'>From</span>
+                <span class='label'>От</span>
 
                 <date-picker name="from" class='date'
+                value="2000-04-28"
                 @date-update=${this.updateDate}
                 ></date-picker>
 
@@ -66,7 +67,7 @@ class RegDate extends LitElement {
             </div>
 
             <div class='value' id="to">
-                <span class='label'>To</span>
+                <span class='label'>До</span>
 
                 <date-picker name="to" class='date'
                 @date-update=${this.updateDate}
