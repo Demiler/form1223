@@ -64,52 +64,103 @@ class Form1223 extends LitElement {
                 --title-width: 190px;
             }
 
-            #result {
+            #reminder {
+                grid-row: 5;
                 position: relative;
                 overflow: hidden;
+                box-shadow: none;
             }
 
-            #reminder {
+            #reminder-text {
                 display: block;
                 position: absolute;
                 padding: 8px;
                 background-color: #faaeb8;
 
                 top: 0px;
-                right: 0;
+                left: 0px;
                 transition: .3s;
+                border-radius: 8px;
             }
 
-            #reminder[hidden] {
-                display: block;
-                top: calc(-100% - 8px);
-                transition: .3s;
+            #reminder-text[hidden] {
+                top: -100%;
+            }
+
+            #result {
+                width: 130px;
+                grid-column: 2;
+                justify-self: flex-end;
+                position: relative;
+            }
+
+            #result.waiting::before {
+                content: '';
+                position: absolute;
+                width: 100%;
+                height: 100%;
+                top: 0;
+                left: 0;
+                background: #a5a5a552;
+                cursor: wait;
+            }
+
+            #result button {
+                margin-bottom: 10px;
+                border: none;
+                background-color: #d1d1d1;
+                font: inherit;
+                padding: 5px 15px;
+                width: 100%;
+                border-radius: 5px;
+                transition: .2s;
+            }
+
+            #result button:focus-visible,
+            #result button:hover {
+                background-color: #daecff;
+            }
+
+            #result button:active {
+                background-color: #cfe6ff;
+                transform: scale(1.2);
+            }
+
+            #file-limit {
+                border-bottom: 1px solid black;
+                font-size: 10pt;
+                width: 100%;
+                display: flex;
+            }
+
+            #file-limit input {
+                outline: none;
+                border: none;
+                width: 100%;
+                font-size: inherit;
+                text-align: right;
+                padding: 0 5px;
+                -moz-appearance: textfield;
+            }
+
+            #file-limit input::-webkit-outer-spin-button,
+            #file-limit input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
             }
         `;
     }
 
     static get properties() {
         return {
-            dt:         { type: Object },
-            latgeo:     { type: Object },
-            longeo:     { type: Object },
-            altgeo:     { type: Object },
-            latdm:      { type: Object },
-            londm:      { type: Object },
-            r:          { type: Object },
-            l:          { type: Object },
-            b:          { type: Object },
-            conditions: { type: Object },
-            mode:       { type: String },
-            max_adc:    { type: Object },
             reminderText: { type: String },
+            filesLimit: { type: Number },
         };
     }
 
     constructor() {
         super();
         this.dt     = { from: null, to: null };
-        this.latgeo = { from: 478.002502, to: 1000 };
+        this.latgeo = { from: null, to: null };
         this.longeo = { from: null, to: null };
         this.altgeo = { from: null, to: null };
         this.latdm =  { from: null, to: null };
@@ -119,9 +170,24 @@ class Form1223 extends LitElement {
         this.b =      { from: null, to: null };
         this.max_adc ={ from: null, to: null };
         this.mode = "eas";
+        this.filesLimit = 10;
 
         this.reminderText = "";
         this.server = server;
+
+        server.onmessage = (e) => {
+            this.resultEl.classList.remove('waiting');
+
+            const id = e.data;
+            if (id === "") {
+                this.showReminder("По запросу не было найдено записей");
+                console.log("Nothing found by request");
+                return;
+            }
+            //this.url = window.location.href + id;
+            this.downloadEl.href = "http://localhost:8082/" + id;
+            this.downloadEl.click();
+        }
 
         server.connect();
     }
@@ -131,7 +197,9 @@ class Form1223 extends LitElement {
         this.hv2 = this.shadowRoot.querySelector("hv2-slider").getData();
         this.dt = this.shadowRoot.querySelector("reg-date").getData();
 
-        this.reminderEl = this.shadowRoot.querySelector("#reminder");
+        this.reminderEl = this.shadowRoot.querySelector("#reminder-text");
+        this.downloadEl = this.shadowRoot.querySelector("#download");
+        this.resultEl = this.shadowRoot.querySelector("#result");
     }
 
     render() {
@@ -192,23 +260,29 @@ class Form1223 extends LitElement {
 
             <div id="result">
                 <button id="send-data" @click=${this.trySend}>Send</button>
-                <div id="files"></div>
-
-                <div id="reminder" hidden>
-                    ${this.reminderText}
+                <div id="file-limit">
+                    <span class='label'>Файлов:</span>
+                    <input type="number" value=${this.filesLimit}
+                    @change=${(e)=>this.filesLimit=Number(e.target.value)}>
                 </div>
+                <a id="download" href=${this.url} target="_blank" hidden>Download</a>
             </div>
 
+            <div id="reminder">
+                <span id="reminder-text" hidden>${this.reminderText}</span>
+            </div>
         `;
     }
 
     showReminder(text) {
         this.reminderText = text;
         this.reminderEl.hidden = false;
-        setTimeout(()=>this.reminderEl.hidden = true, 2000);
+        setTimeout(()=>this.reminderEl.hidden = true, 4000);
     }
 
     trySend() {
+        this.resultEl.classList.add('waiting');
+
         const blob = {
             dt: this.dt,
             latgeo: this.latgeo, longeo: this.longeo, altgeo: this.altgeo,
@@ -218,9 +292,9 @@ class Form1223 extends LitElement {
             mode: this.mode,
             max_adc: this.max_adc,
             hv2: this.hv2,
+            filesLimit: this.filesLimit,
         };
 
-        console.log(blob);
         server.send(JSON.stringify(blob));
     }
 
@@ -239,7 +313,6 @@ class Form1223 extends LitElement {
     updateRange(e) {
         const name = e.target.getAttribute("name");
         this[name] = e.detail;
-        console.log(name, this[name]);
     }
 
     updateDateRange(e) {

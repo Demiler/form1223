@@ -31,10 +31,11 @@ class Api {
             this.connect();
         };
 
-        this.ws.onmessage = (e) => {
-            console.log('got message: ', e.data);
-        };
+        this.ws.onmessage = this.onmessage;
         this.retry = false;
+    }
+
+    onmessage(e) {
     }
  
     send(data) {
