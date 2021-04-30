@@ -181,7 +181,7 @@ class Form1223 extends LitElement {
             </div>
 
             <div id='lights'>
-                <div class='title'>Условия Освщенности</div>
+                <div class='title'>Условия Освещенности</div>
                 <light-cnd @update=${this.updateLigCond}></light-cnd>
             </div>
 

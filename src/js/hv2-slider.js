@@ -1,18 +1,63 @@
 import { LitElement, html, css } from 'lit-element'
+import './range2-input'
 
 class HV2Slider extends LitElement {
     static get styles() {
         return css`
             :host {
-                display: flex;
+                display: grid;
+                grid-template-columns: 1fr 160px;
+                grid-gap: 10px;
                 justify-content: space-between;
             }
 
+            .preview-wrap {
+                display: flex;
+                width: 100%;
+                justify-content: space-evenly;
+                align-items: center;
+                font-size: 13px;
+            }
+
             .preview {
+                display: flex;
+                flex-direction: column;
+                box-sizing: border-box;
+            }
+
+            #input-from .preview-element {
+                border-right: 1px solid black;
+            }
+
+            .preview-element {
                 padding: 2px 8px;
                 border: none;
                 border-bottom: 1px solid black;
-                width: auto;
+                box-sizing: border-box;
+                outline: none;
+                transition: .2s;
+
+                width: 100%;
+                margin: 0;
+                -moz-appearance: textfield;
+            }
+
+            .preview-element::-webkit-outer-spin-button,
+            .preview-element::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            .preview-element:focus {
+                background-color: #eee;
+                border-color: #87c1ff;
+            }
+
+            .preview .label {
+                font-size: 10px;
+                padding: 0 8px;
+                margin-bottom: 5px;
+                color: #555;
             }
 
             #slider {
@@ -20,17 +65,12 @@ class HV2Slider extends LitElement {
                 position: relative;
                 display: flex;
                 align-items: center;
-                width: calc(100% - 90px);
+                width: 100%;
             }
 
-            .preview-wrap {
-                display: flex;
-                flex-direction: column;
-                width: 80px;
-                justify-content: space-evenly;
-            }
-
-            #slider input {
+            #range {
+                width: 100%;
+                height: 20px;
                 z-index: 1;
             }
 
@@ -81,22 +121,13 @@ class HV2Slider extends LitElement {
 
             .tick:before {
             }
-
-            input {
-                width: 100%;
-                margin: 0;
-            }
-
-            .preview {
-                display: inline-block;
-            }
         `;
     }
 
     static get properties() {
         return {
-            code: { type: Number },
-            intensity: { type: Number },
+            from: { type: Number },
+            to: { type: Number },
         };
     }
 
@@ -104,16 +135,26 @@ class HV2Slider extends LitElement {
         super();
         this.MIN = 128;
         this.MAX = 255;
-        this.code = this.MIN;
-        this.intensity = this.codeToIntensity(this.code);
+        this.MINJ = this.codeToIntensity(this.MIN);
+        this.MAXJ = this.codeToIntensity(this.MAX);
+
+        this.from = this.MIN;
+        this.to = this.MAX;
+        this.fromJ = this.codeToIntensity(this.from);
+        this.toJ = this.codeToIntensity(this.to);
+
         this.ticks = [];
-        this.minTickWidth = 70;
-        this.maxTickWidth = 100;
+        this.minTickWidth = 64;
+        this.maxTickWidth = 128;
     }
 
     firstUpdated() {
         let width = this.shadowRoot.querySelector("#slider").offsetWidth;
         this.fullRecalc(width);
+
+        this.sliderEl = this.shadowRoot.querySelector("range2-input");
+        this.inputFromEl = this.shadowRoot.querySelector("#input-from input");
+        this.inputToEl = this.shadowRoot.querySelector("#input-to input");
     }
 
     fullRecalc(width) {
@@ -136,7 +177,7 @@ class HV2Slider extends LitElement {
         let ticksCount = Math.round(width / tickWidth);
         //let initialStep = Math.trunc((valsCnt / width) * (tickWidth / 2)) - 1;
 
-        this.recalculate(step, ticksCount, 5); //9 - for 720px
+        this.recalculate(step, ticksCount, 5); //magic number is currection number
     }
 
     recalculate(step, ticksCount, initialStep) {
@@ -153,35 +194,76 @@ class HV2Slider extends LitElement {
     render() {
         return html`
             <div id='slider'>
-                <input type="range" min=${this.MIN} max=${this.MAX}
-                    @input=${this.changeValue} .value=${this.code}>
+                <range2-input id="range"
+                min="128" max="255"
+                @change=${this.changeValue}
+                ></range2-input>
+
                 <div class='ticks'>
                     ${this.ticks.map(code => html`
                         <div class='tick' style="width:${this.tickWidth}px">
-                            <span class='holder'></span>
                             <span class='codeVal'>${code}</span>
+                            <span class='holder'></span>
                             <span class='intsVal'>${this.codeToIntensity(code)}</span>
                         </div>
                     `)}
                 </div>
-
-
             </div>
+
             <div class='preview-wrap'>
-                <input class='preview' id="code" .value=${this.code}>
-                <input class='preview' id="intensity" .value=${this.intensity}>
+                <div id="input-from" class='preview'>
+                    <span class='label'>От</span>
+                    <input class='preview-element code' type="number"
+                    @input=${this.changeCode}
+                    @change=${this.changeCode}
+                    value=${this.from}>
+                    <div class='preview-element intensity'>${this.fromJ}</div>
+                </div>
+                <div id="input-to" class='preview'>
+                    <span class='label'>До</span>
+                    <input class='preview-element code' type="number"
+                    @input=${this.changeCode}
+                    @change=${this.changeCode}
+                    value=${this.to}>
+                    <div class='preview-element intensity'>${this.toJ}</div>
+                </div>
             </div>
         `;
     }
 
     codeToIntensity(code) {
-        let intensity = 3 * Math.pow(10, 7) * Math.pow((255 / code), 6);
+        const intensity = 3 * Math.pow(10, 7) * Math.pow((255 / code), 6);
         return Number.parseFloat(intensity).toExponential(2);
     }
 
+    changeCode(e) {
+        let val = Number(e.target.value);
+        if (e.target.parentNode.id === "input-from") {
+            val = this.from = Math.clamp(this.MIN, this.to, val);
+            this.fromJ = this.codeToIntensity(this.from);
+        }
+        else {
+            val = this.to = Math.clamp(this.from, this.MAX, val);
+            this.toJ = this.codeToIntensity(this.to);
+        }
+
+        if (e.type === "change") {
+            e.target.value = val;
+            e.target.blur();
+        }
+
+        this.sliderEl.setData(this.from, this.to);
+
+        this.sendChange();
+    }
+
     changeValue(e) {
-        this.code = Number(e.target.value);
-        this.intensity = this.codeToIntensity(this.code);
+        this.from = e.detail.from;
+        this.to = e.detail.to;
+        this.fromJ = this.codeToIntensity(this.from);
+        this.toJ = this.codeToIntensity(this.to);
+        this.inputFromEl.value = this.from;
+        this.inputToEl.value = this.to;
         this.sendChange()
     }
 
@@ -195,8 +277,8 @@ class HV2Slider extends LitElement {
 
     getData() {
         return {
-            code: this.code,
-            intensity: this.intensity
+            from: { code: this.from, J: this.fromJ },
+            to: { code: this.to, J: this.toJ },
         };
     }
 }
