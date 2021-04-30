@@ -45,10 +45,10 @@ class RegDate extends LitElement {
     }
 
     firstUpdated() {
-        this.from.date = this.shadowRoot.querySelector("#from .date").getData();
-        this.from.time = this.shadowRoot.querySelector("#from .time").getData();
-        this.to.date   = this.shadowRoot.querySelector("#to .date").getData();
-        this.to.time   = this.shadowRoot.querySelector("#to .time").getData();
+        this.from.date = this.shadowRoot.querySelector("#from .date").getData().value;
+        this.from.time = this.shadowRoot.querySelector("#from .time").getData().value;
+        this.to.date   = this.shadowRoot.querySelector("#to .date").getData().value;
+        this.to.time   = this.shadowRoot.querySelector("#to .time").getData().value;
     }
 
     render() {
@@ -57,11 +57,12 @@ class RegDate extends LitElement {
                 <span class='label'>От</span>
 
                 <date-picker name="from" class='date'
-                value="2000-04-28"
+                value="2000-01-01"
                 @date-update=${this.updateDate}
                 ></date-picker>
 
                 <time-picker name="from" class='time'
+                value="00:00:00"
                 @time-update=${this.updateTime}
                 ></time-picker>
             </div>
@@ -90,13 +91,13 @@ class RegDate extends LitElement {
 
     updateTime(e) {
         const name = e.target.getAttribute("name");
-        this[name].time = e.detail;
+        this[name].time = e.detail.value;
         this.sendChange();
     }
 
     updateDate(e) {
         const name = e.target.getAttribute("name");
-        this[name].date = e.detail;
+        this[name].date = e.detail.value;
         this.sendChange();
     }
 

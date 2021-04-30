@@ -118,7 +118,7 @@ class Form1223 extends LitElement {
         this.l =      { from: null, to: null };
         this.b =      { from: null, to: null };
         this.max_adc ={ from: null, to: null };
-        this.mode    = "EAS";
+        this.mode = "eas";
 
         this.reminderText = "";
         this.server = server;
@@ -219,13 +219,9 @@ class Form1223 extends LitElement {
             max_adc: this.max_adc,
             hv2: this.hv2,
         };
-        this.debug = blob;
-        const arr = utils.isObjectFilled(blob);
-        if (arr !== undefined) {
-            this.showReminder("There is something wrong with: " + arr.join(' -> '));
-        }
-        else
-            server.send(JSON.stringify(blob));
+
+        console.log(blob);
+        server.send(JSON.stringify(blob));
     }
 
     updateIntens(e) {

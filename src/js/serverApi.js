@@ -5,7 +5,6 @@ class Api {
     }
 
     connect() {
-        if (this.kill) return;
         if (this.retry) {
             this.retry = false;
             return;

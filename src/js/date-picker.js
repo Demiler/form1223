@@ -69,7 +69,7 @@ class DatePicker extends LitElement {
 
         this.min = "2000-1-1";
         this.max = this.formatDate();
-        this.value = undefined;
+        this.value = this.max;
         this.prettyDate = this.makePretty();
     }
 
@@ -78,9 +78,7 @@ class DatePicker extends LitElement {
         this.pickerEl = this.shadowRoot.querySelector("#date-picker");
         this.addEventListener('blur', this.hidePicker);
 
-        if (this.value === undefined)
-            this.value = this.max;
-        else {
+        if (this.hasAttribute("value")) {
             this.setDateFromString(this.value);
             this.prettyDate = this.makePretty();
             this.requestUpdate();
@@ -190,7 +188,7 @@ class DatePicker extends LitElement {
 
     getData() {
         return {
-            string: this.value,
+            value: this.value,
             day: this.day,
             month: this.month,
             year: this.year,

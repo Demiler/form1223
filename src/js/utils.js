@@ -36,6 +36,9 @@ export const isObjectType = (value) => {
     return value != null && typeof value == 'object' && !Array.isArray(value);
 }
 
+export const isObjectEmpty = (obj) => {
+    return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
+}
 
 export const isObjectFilled = (obj) => {
     for (let key in obj) {

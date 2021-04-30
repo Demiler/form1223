@@ -104,6 +104,9 @@ class TimePicker extends LitElement {
         this.inputEl = this.shadowRoot.querySelector("input");
         this.listEl = this.shadowRoot.querySelector("#list");
 
+        if (this.hasAttribute("value"))
+            this.setDetTime(this.value);
+
         this.scrollToBest();
         this.addEventListener('blur', this.change);
     }
@@ -173,11 +176,11 @@ class TimePicker extends LitElement {
         this.hideList();
     }
 
-    setDetTime(time) { //time = '00:00'
+    setDetTime(time) { //time = '00:00:00'
         const split = time.split(':');
         this.hours = Number(split[0]);
-        this.mins = Number(split[1]);
-        this.secs = 0;
+        this.mins = split.length > 1 ? Number(split[1]) : 0;
+        this.secs = split.length > 2 ? Number(split[2]) : 0;
         this.formatValue();
     }
 
@@ -191,7 +194,7 @@ class TimePicker extends LitElement {
 
     getData() {
         return {
-            string: this.value,
+            value: this.value,
             hours: this.hours,
             mins: this.mins,
             secs: this.secs,

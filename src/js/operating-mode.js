@@ -41,7 +41,10 @@ class OpMode extends LitElement {
     }
 
     firstUpdated() {
-        this.current = this.shadowRoot.querySelector("#eas");
+        if (this.value)
+            this.current = this.shadowRoot.querySelector(`#${this.value}`);
+        else
+            this.current = this.shadowRoot.querySelector("#eas");
         this.current.classList.add('active');
     }
 
@@ -62,10 +65,16 @@ class OpMode extends LitElement {
         this.current = e.target;
 
         let event = new CustomEvent('update', {
-            detail: { value: this.current.innerText },
+            detail: this.getData(),
             bubbles: true,
             composed: true });
         this.dispatchEvent(event);
+    }
+
+    getData() {
+        return {
+            value: this.current.id
+        };
     }
 }
 

@@ -277,8 +277,8 @@ class HV2Slider extends LitElement {
 
     getData() {
         return {
-            from: { code: this.from, J: this.fromJ },
-            to: { code: this.to, J: this.toJ },
+            from: this.from,
+            to: this.to
         };
     }
 }
