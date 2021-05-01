@@ -115,7 +115,7 @@ class DownloadButton extends LitElement {
 
     changeLimit(e) {
         this.filesLimit = Number(e.target.value);
-        this.sendUpdate();
+        this.sendChange();
     }
 
     sendChange() {
