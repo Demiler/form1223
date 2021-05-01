@@ -1,5 +1,7 @@
 import { LitElement, html, css } from 'lit-element'
 import { server } from './serverApi'
+import linkIcon from '/img/link.svg'
+import unlinkIcon from '/img/unlink.svg'
 import * as utils from './utils'
 import './reg-date'
 import './ps-input'
@@ -7,6 +9,7 @@ import './light-conditions'
 import './operating-mode'
 import './hv2-slider'
 import './fromto-input'
+import './download-button'
 
 class Form1223 extends LitElement {
     static get styles() {
@@ -39,7 +42,6 @@ class Form1223 extends LitElement {
                 display: block;
             }
 
-            /*#geocrd, #magcrd {*/
             :host > * {
                 border-radius: 5px;
                 padding: 5px;
@@ -55,7 +57,7 @@ class Form1223 extends LitElement {
                 border-bottom: 1px solid #00000040;
             }
 
-            #HV2, #result {
+            #HV2 {
                 grid-column: auto / span 2;
             }
 
@@ -94,58 +96,16 @@ class Form1223 extends LitElement {
                 position: relative;
             }
 
-            #result.waiting::before {
-                content: '';
+            #server-connection {
                 position: absolute;
-                width: 100%;
-                height: 100%;
                 top: 0;
-                left: 0;
-                background: #a5a5a552;
-                cursor: wait;
-            }
-
-            #result button {
-                margin-bottom: 10px;
-                border: none;
-                background-color: #d1d1d1;
-                font: inherit;
-                padding: 5px 15px;
-                width: 100%;
-                border-radius: 5px;
-                transition: .2s;
-            }
-
-            #result button:focus-visible,
-            #result button:hover {
-                background-color: #daecff;
-            }
-
-            #result button:active {
-                background-color: #cfe6ff;
-                transform: scale(1.2);
-            }
-
-            #file-limit {
-                border-bottom: 1px solid black;
-                font-size: 10pt;
-                width: 100%;
-                display: flex;
-            }
-
-            #file-limit input {
-                outline: none;
-                border: none;
-                width: 100%;
-                font-size: inherit;
-                text-align: right;
-                padding: 0 5px;
-                -moz-appearance: textfield;
-            }
-
-            #file-limit input::-webkit-outer-spin-button,
-            #file-limit input::-webkit-inner-spin-button {
-                -webkit-appearance: none;
+                left: -50px;
+                width: 40px;
+                height: 40px;
+                background: #ddd;
+                border-radius: 50%;
+                padding: 8px;
+                box-sizing: border-box;
             }
         `;
     }
@@ -153,7 +113,7 @@ class Form1223 extends LitElement {
     static get properties() {
         return {
             reminderText: { type: String },
-            filesLimit: { type: Number },
+            connectionIcon: { type: String },
         };
     }
 
@@ -172,22 +132,31 @@ class Form1223 extends LitElement {
         this.mode = "eas";
         this.filesLimit = 10;
 
+        this.setDisconnected();
         this.reminderText = "";
         this.server = server;
 
-        server.onmessage = (e) => {
-            this.resultEl.classList.remove('waiting');
+        server.on('message', (id) => {
+            this.downloadEl.unwait();
 
-            const id = e.data;
             if (id === "") {
                 this.showReminder("По запросу не было найдено записей");
                 console.log("Nothing found by request");
                 return;
             }
             //this.url = window.location.href + id;
-            this.downloadEl.href = "http://localhost:8082/" + id;
-            this.downloadEl.click();
-        }
+            this.downloadEl.download("http://localhost:8082/" + id);
+        });
+
+        server.on('error', (err) => {
+            this.downloadEl.unwait();
+            this.setDisconnected();
+            this.showReminder("Ошибка АПИ: " + err);
+        });
+
+        server.on('connection', () => {
+            this.setConnected();
+        });
 
         server.connect();
     }
@@ -198,8 +167,7 @@ class Form1223 extends LitElement {
         this.dt = this.shadowRoot.querySelector("reg-date").getData();
 
         this.reminderEl = this.shadowRoot.querySelector("#reminder-text");
-        this.downloadEl = this.shadowRoot.querySelector("#download");
-        this.resultEl = this.shadowRoot.querySelector("#result");
+        this.downloadEl = this.shadowRoot.querySelector("download-button");
     }
 
     render() {
@@ -259,13 +227,16 @@ class Form1223 extends LitElement {
             </div>
 
             <div id="result">
-                <button id="send-data" @click=${this.trySend}>Send</button>
-                <div id="file-limit">
-                    <span class='label'>Файлов:</span>
-                    <input type="number" value=${this.filesLimit}
-                    @change=${(e)=>this.filesLimit=Number(e.target.value)}>
+                <download-button
+                value=${this.filesLimit}
+                @change=${(e) => this.filesLimit = e.detail.value}
+                @request=${this.trySend}
+                >Отправить</download-button>
+                <div id="server-connection">
+                    <img id="s-c-icon" src=${this.connectionIcon}
+                    title=${this.connectionInfo}
+                    ></img>
                 </div>
-                <a id="download" href=${this.url} target="_blank" hidden>Download</a>
             </div>
 
             <div id="reminder">
@@ -275,13 +246,24 @@ class Form1223 extends LitElement {
     }
 
     showReminder(text) {
+        clearTimeout(this.reminderTO);
         this.reminderText = text;
         this.reminderEl.hidden = false;
-        setTimeout(()=>this.reminderEl.hidden = true, 4000);
+        this.reminderTO = setTimeout(() => this.reminderEl.hidden = true, 4000);
+    }
+
+    setConnected() {
+        this.connectionIcon = linkIcon;
+        this.connectionInfo = "Connected to the server";
+    }
+
+    setDisconnected() {
+        this.connectionIcon = unlinkIcon;
+        this.connectionInfo = "No connection to the server";
     }
 
     trySend() {
-        this.resultEl.classList.add('waiting');
+        this.downloadEl.wait();
 
         const blob = {
             dt: this.dt,
