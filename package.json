@@ -2,7 +2,7 @@
   "name": "",
   "version": "1.0.0",
   "description": "",
-  "main": "./src/index.js",
+  "main": "app/server.js",
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "dev": "webpack-dev-server --config webpack.dev.js",
@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "app-datepicker": "^4.5.1",
+    "express": "^4.17.1",
     "lit-element": "^2.4.0",
     "pg": "^8.6.0",
     "randomstring": "^1.1.5",
