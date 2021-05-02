@@ -11,7 +11,7 @@ module.exports = merge(common, {
   mode: 'production',
   entry: './src/index.js',
   output: {
-    path: resolve(__dirname, 'build'),
+    path: resolve(__dirname, 'app/public'),
     filename: 'bundle.[contentHash].js',
   },
   optimization: {

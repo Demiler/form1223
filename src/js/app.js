@@ -1,7 +1,4 @@
 import { LitElement, html, css } from 'lit-element'
-import { server } from './serverApi'
-import linkIcon from '/img/link.svg'
-import unlinkIcon from '/img/unlink.svg'
 import * as utils from './utils'
 import './reg-date'
 import './light-conditions'
@@ -94,25 +91,12 @@ class Form1223 extends LitElement {
                 justify-self: flex-end;
                 position: relative;
             }
-
-            #server-connection {
-                position: absolute;
-                top: 0;
-                left: -50px;
-                width: 40px;
-                height: 40px;
-                background: #ddd;
-                border-radius: 50%;
-                padding: 8px;
-                box-sizing: border-box;
-            }
         `;
     }
 
     static get properties() {
         return {
             reminderText: { type: String },
-            connectionIcon: { type: String },
         };
     }
 
@@ -131,33 +115,7 @@ class Form1223 extends LitElement {
         this.mode = "eas";
         this.filesLimit = 10;
 
-        this.setDisconnected();
         this.reminderText = "";
-        this.server = server;
-
-        server.on('message', (id) => {
-            this.downloadEl.unwait();
-
-            if (id === "") {
-                this.showReminder("По запросу не было найдено записей");
-                console.log("Nothing found by request");
-                return;
-            }
-            //this.url = window.location.href + id;
-            this.downloadEl.download("http://localhost:8082/" + id);
-        });
-
-        server.on('error', (err) => {
-            this.downloadEl.unwait();
-            this.setDisconnected();
-            this.showReminder("Ошибка АПИ: " + err);
-        });
-
-        server.on('connection', () => {
-            this.setConnected();
-        });
-
-        server.connect();
     }
 
     firstUpdated() {
@@ -230,18 +188,23 @@ class Form1223 extends LitElement {
                 value=${this.filesLimit}
                 @change=${(e) => this.filesLimit = e.detail.value}
                 @request=${this.trySend}
+                @notfound=${this.notFound}
+                @error=${this.reqError}
                 >Отправить</download-button>
-                <div id="server-connection">
-                    <img id="s-c-icon" src=${this.connectionIcon}
-                    title=${this.connectionInfo}
-                    ></img>
-                </div>
             </div>
 
             <div id="reminder">
                 <span id="reminder-text" hidden>${this.reminderText}</span>
             </div>
         `;
+    }
+
+    reqError(e) {
+        this.showReminder("Ошибка сервера");
+    }
+
+    notFound() {
+        this.showReminder("По запросу не было найдено записей");
     }
 
     showReminder(text) {
@@ -251,20 +214,8 @@ class Form1223 extends LitElement {
         this.reminderTO = setTimeout(() => this.reminderEl.hidden = true, 4000);
     }
 
-    setConnected() {
-        this.connectionIcon = linkIcon;
-        this.connectionInfo = "Connected to the server";
-    }
-
-    setDisconnected() {
-        this.connectionIcon = unlinkIcon;
-        this.connectionInfo = "No connection to the server";
-    }
-
     trySend() {
-        this.downloadEl.wait();
-
-        const blob = {
+        const data = JSON.stringify({
             dt: this.dt,
             latgeo: this.latgeo, longeo: this.longeo, altgeo: this.altgeo,
             latdm: this.latdm, londm: this.londm, r: this.r,
@@ -274,9 +225,8 @@ class Form1223 extends LitElement {
             max_adc: this.max_adc,
             hv2: this.hv2,
             filesLimit: this.filesLimit,
-        };
-
-        server.send(JSON.stringify(blob));
+        });
+        this.downloadEl.download(data);
     }
 
     updateIntens(e) {

@@ -1,20 +1,21 @@
 import { LitElement, html, css } from 'lit-element'
-import { server } from './serverApi'
 
 class DownloadButton extends LitElement {
     static get styles() {
         return css`
             :host {
                 position: relative;
+                display: block;
+                border-radius: inherit;
             }
 
             :host(.waiting)::before {
                 content: '';
                 position: absolute;
-                width: 100%;
-                height: 100%;
-                top: 0;
-                left: 0;
+                width: calc(100% + 10px);
+                height: calc(100% + 10px);
+                top: -5px;
+                left: -5px;
                 background: #a5a5a552;
                 cursor: wait;
             }
@@ -61,6 +62,10 @@ class DownloadButton extends LitElement {
             #file-limit input::-webkit-inner-spin-button {
                 -webkit-appearance: none;
             }
+
+            #download {
+                display: none;
+            }
         `;
     }
 
@@ -89,7 +94,7 @@ class DownloadButton extends LitElement {
                 <input type="number" value=${this.filesLimit}
                 @change=${this.changeLimit}>
             </div>
-            <a id="download" target="_blank" hidden>Download</a>
+            <a id="download" download></a>
         `;
     }
 
@@ -101,9 +106,34 @@ class DownloadButton extends LitElement {
         this.classList.remove("waiting");
     }
 
-    download(href) {
-        this.linkEl.href = href;
-        this.linkEl.click();
+    download(body) {
+        this.wait();
+        console.log('sending request');
+        fetch(`${window.location.href}download`, {
+            method: "POST",
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'text/plain'
+            },
+            body
+        })
+        .then(res => {
+            this.unwait();
+
+            switch (res.status) {
+                case 404:
+                    this.sendNotFound(); break;
+                case 200:
+                    res.text().then(id => this.downloadData(id)); break;
+                default:
+                    this.sendError()
+            }
+        })
+        .catch(err => {
+            console.log('some error', err);
+            this.unwait();
+            this.sendError(err);
+        });
     }
 
     sendRequest(e) {
@@ -120,6 +150,27 @@ class DownloadButton extends LitElement {
             e.target.value = 1;
         }
         this.sendChange();
+    }
+
+    downloadData(id) {
+        this.wait();
+        this.linkEl.href = `${window.location.href}get?id=${id}`;
+        this.linkEl.click();
+        setTimeout(() => this.unwait(), 2000);
+    }
+
+    sendError() {
+        let event = new CustomEvent('error', {
+            bubbles: true,
+            composed: true });
+        this.dispatchEvent(event);
+    }
+
+    sendNotFound() {
+        let event = new CustomEvent('notfound', {
+            bubbles: true,
+            composed: true });
+        this.dispatchEvent(event);
     }
 
     sendChange() {
