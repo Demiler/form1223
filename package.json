@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack --config webpack.prod.js",
     "dev": "webpack-dev-server --config webpack.dev.js",
-    "server": "nodemon ./server/server.js"
+    "dev:server": "nodemon ./app/server.js",
+    "prod": "node ./app/server.js"
   },
   "author": "",
   "license": "ISC",

@@ -1,5 +1,4 @@
 const { requireSafe } = require('./requireWrap.js');
-const { checkDBConnection } = require('./checkDBConnection.js');
 const { Pool } = require("pg");
 const randstr = require("randomstring");
 
