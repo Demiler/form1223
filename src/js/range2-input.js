@@ -70,10 +70,11 @@ class Range2Input extends LitElement {
                 border: none;
                 border-radius: 0;
                 pointer-events: auto;
-                width: 15px;
-                height: 15px;
-                margin-top: 2px;
                 border-radius: 50%;
+
+                width: var(--thumb-size);
+                height: var(--thumb-size);
+                margin-top: calc((var(--slider-height) - var(--thumb-size)) / 2);
             }
 
 
