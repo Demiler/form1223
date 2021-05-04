@@ -2,10 +2,12 @@ const { psqlSearch, getFileList, getErrorList, setError } = require('./psqlSearc
 const bodyParser = require('body-parser');
 const express = require('express')
 const tar = require('tar-stream')
-const util = require('util')
+const { createGzip } = require('zlib');
 const path = require('path')
 const fs = require('fs')
 
+//const ARCHNAME = "прибор_tus_спутника_lomonosov.tar.gz";
+const ARCHNAME = "pribor_tus_sputnik_lomonosov.tar.gz";
 const DATAPATH = process.env.TUS_DATAPATH;
 const PORT = process.argv.length > 2 ? process.argv[2] : 8080;
 const app = express();
@@ -32,34 +34,38 @@ app.get('/download', async (req, res) => {
         if (files === undefined)
             throw "Error: Invalid download url";
 
-        res.setHeader('Content-Disposition', 'attachment; filename="whatever.tar"')
+        res.setHeader('Content-Disposition', `attachment; filename="${ARCHNAME}"`)
 
-        const pack = tar.pack()
-        pack.pipe(res)
-
-        const entry = util.promisify(pack.entry).bind(pack)
-        let done = 0;
-
-        const checkIfDone = (done, total) => {
-            if (done !== total) return;
-            console.log(`Archive generated for request with id: ${id}`);
-            pack.finalize();
+        const handleError = (e, filepath) => {
+            console.log(`There is and error with ${filepath}`);
+            setError(id, e);
         }
 
-        files.forEach(name => {
-            const filepath = DATAPATH + name;
-            fs.readFile(filepath, (err, data) => {
-                if (err) {
-                    const errorMessage = `There is the problem with ${filepath}`;
-                    console.log(errorMessage);
-                    setError(id, errorMessage);
-                    checkIfDone(++done, files.length);
-                    return;
-                }
-                entry({ name }, data);
-                checkIfDone(++done, files.length);
-            });
-        });
+        const pack = tar.pack()
+        pack.pipe(createGzip()).pipe(res)
+
+        for (const i in files) {
+            const filepath = DATAPATH + files[i];
+            const { size } = await fs.promises.stat(filepath)
+                .catch(e => { handleError(e, filepath); return { size: null }; });
+
+            if (size === null) continue;
+
+            const entry = pack.entry({ name: files[i], size });
+            await new Promise((response, reject) => {
+                fs.createReadStream(filepath)
+                    .on('close', response)
+                    .on('error', reject)
+                    .pipe(entry);
+            })
+            .then(() => entry.end())
+            .catch(e => handleError(e, filepath));
+        };
+
+        console.log(`Archive generated for request with id: ${id}`);
+        pack.finalize();
+        res.end();
+
     } catch (e) {
         console.error(e);
         res.status(500).end();
