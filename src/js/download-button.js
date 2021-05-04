@@ -110,7 +110,7 @@ class DownloadButton extends LitElement {
         this.wait();
         console.log('sending request');
         fetch(`${window.location.href}get`, {
-            method: "POST",
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Accept': 'text/plain'
@@ -132,9 +132,26 @@ class DownloadButton extends LitElement {
         .catch(err => {
             console.log('some error', err);
             this.unwait();
-            this.sendError(err);
+            this.sendError("Неудалось послать запрос.");
         });
     }
+
+    askForErrors(id) {
+        fetch(`${window.location.href}errors?id=${id}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' },
+        })
+        .then(async res => {
+            if (res.status === 200) {
+                let amount;
+                await res.json().then(arr => amount = arr.length);
+                if (amount > 0)
+                    this.sendError(`Возникла ошибка при обработке нескольких (${amount}) файлов`);
+            }
+        })
+        .catch(() => {}); //ignore
+    }
+
 
     sendRequest(e) {
         let event = new CustomEvent('request', {
@@ -156,11 +173,13 @@ class DownloadButton extends LitElement {
         this.wait();
         this.linkEl.href = `${window.location.href}download?id=${id}`;
         this.linkEl.click();
+        setTimeout(() => this.askForErrors(id), 2000);
         setTimeout(() => this.unwait(), 2000);
     }
 
-    sendError() {
+    sendError(error) {
         let event = new CustomEvent('error', {
+            detail: error,
             bubbles: true,
             composed: true });
         this.dispatchEvent(event);

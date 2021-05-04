@@ -72,7 +72,7 @@ const generateString = (data) => {
 
         const all = [ dateString, opMode, conditions, ...coords ];
 
-        return "SELECT ref FROM tus WHERE " + all.join(" AND ") + ` LIMIT ${filesLimit};`;
+        return "SELECT ref FROM tus WHERE " + all.join(" AND ") + ` ORDER BY dt LIMIT ${filesLimit};`;
     } catch (err) {
         console.log(`Error on parser: ${err}`);
         return "REJECTED";
@@ -121,7 +121,7 @@ const psqlSearch = async (data) => {
                 doneQuerys.delete(reqStr);
             }, queryClearTimeout);
 
-            filesMap.set(id, res.rows.map(el => el.ref));
+            filesMap.set(id, { errors: new Set(), files: res.rows.map(el => el.ref) });
             doneQuerys.set(reqStr, { timeout, id });
 
             return { status: 0, id };
@@ -140,8 +140,21 @@ const psqlSearch = async (data) => {
 
 const getFileList = (id) => {
     if (filesMap.has(id))
-        return filesMap.get(id);
+        return filesMap.get(id).files;
     return undefined;
 }
 
-module.exports = { psqlSearch, getFileList };
+const getErrorList = (id) => {
+    if (filesMap.has(id))
+        return filesMap.get(id).errors;
+    return undefined;
+}
+
+const setError = (id, error) => {
+    if (filesMap.has(id))
+        filesMap.get(id).errors.add(error);
+    else
+        console.log("setError: incorrect id provided");
+}
+
+module.exports = { psqlSearch, getFileList, getErrorList, setError };

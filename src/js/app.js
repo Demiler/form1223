@@ -200,7 +200,10 @@ class Form1223 extends LitElement {
     }
 
     reqError(e) {
-        this.showReminder("Ошибка сервера");
+        if (e.detail)
+            this.showReminder(`Ошибка сервера: ${e.detail}`);
+        else
+            this.showReminder("Ошибка сервера");
     }
 
     notFound() {
