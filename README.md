@@ -18,7 +18,7 @@ Don't forget to add file `database.json` to app folder. It should look like this
 ## Usage
 Simply start the server and open `http://localhost:8080` in your browser.
 ```bash
-npm run server
+npm run prod
 #or
 node app/server.js [port]
 ```

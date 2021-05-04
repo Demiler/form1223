@@ -92,10 +92,10 @@ class LightCondition extends LitElement {
         return html`
             <div id="daynight">
                 <button class='item' id="day" @click=${this.pick}  >
-                    ДЕНЬ (avg_hv <= 128)
+                    ДЕНЬ (avg_hv >= 128)
                 </button>
                 <button class='item' id="night" @click=${this.pick}>
-                    НОЧЬ (avg_hv > 128)
+                    НОЧЬ (avg_hv < 128)
                 </button>
             </div>
             <div id="values">

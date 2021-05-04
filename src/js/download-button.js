@@ -109,7 +109,7 @@ class DownloadButton extends LitElement {
     download(body) {
         this.wait();
         console.log('sending request');
-        fetch(`${window.location.href}download`, {
+        fetch(`${window.location.href}get`, {
             method: "POST",
             headers: {
                 'Content-Type': 'application/json',
@@ -154,7 +154,7 @@ class DownloadButton extends LitElement {
 
     downloadData(id) {
         this.wait();
-        this.linkEl.href = `${window.location.href}get?id=${id}`;
+        this.linkEl.href = `${window.location.href}download?id=${id}`;
         this.linkEl.click();
         setTimeout(() => this.unwait(), 2000);
     }

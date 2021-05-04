@@ -11,13 +11,13 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(express.static('public'));
+app.use(express.static(path.resolve(__dirname, 'public/')));
 
 app.get('/', (req, res) => {
     res.sendFile(path.resolve(__dirname, 'public/', 'index.html'));
 });
 
-app.get('/get', async (req, res) => {
+app.get('/download', async (req, res) => {
     const id = req.query.id;
     console.log('GET get request with an id:', id);
 
@@ -53,7 +53,7 @@ app.get('/get', async (req, res) => {
     }
 });
 
-app.post('/download', async (req, res) => {
+app.post('/get', async (req, res) => {
     console.log('POST download');
     let search;
     await psqlSearch(req.body).then(res => search = res)
@@ -68,6 +68,8 @@ app.post('/download', async (req, res) => {
             res.status(500).end(); break;
         case 2:
             res.status(404).end(); break;
+        case 3: //invalid data rejection
+            res.status(400).end(); break;
         default:
             console.log("Unkown status from psqlSearch: ", search.status);
             res.status(500).end(); break;

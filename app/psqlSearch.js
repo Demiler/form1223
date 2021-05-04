@@ -14,12 +14,12 @@ else {//check if connection to db is ok
     console.log("Checking database connection...");
     const psql = new Pool(dbconf);
     psql.query("SELECT * FROM tus LIMIT 0;")
+        .then(() => console.log("ok!"))
         .catch(err => {
-            console.log(`${err}`)
+            console.log(`PSQL ${err}`)
             process.exit(2);
         });
     psql.end();
-    console.log("ok!");
 }
 //////////////////////////////////////////////////////////////////
 
@@ -30,54 +30,64 @@ const queryClearTimeout = 1 * 60 * 60 * 1000; //one hour in millis
 //////////////////////////////////////////////////////////////////
 
 const generateString = (data) => {
-    const filesLimit = data.filesLimit;
-    delete data.filesLimit;
+    try {
+        const filesLimit = data.filesLimit;
+        delete data.filesLimit;
 
-    const dateFrom = `${data.dt.from.date} ${data.dt.from.time}`
-    const dateTo = `${data.dt.to.date} ${data.dt.to.time}`
-    let dateString = `dt='${dateFrom}'`;
+        const dateFrom = `${data.dt.from.date} ${data.dt.from.time}`
+        const dateTo = `${data.dt.to.date} ${data.dt.to.time}`
+        let dateString = `dt='${dateFrom}'`;
 
-    if (dateFrom !== dateTo)
-        dateString = `dt BETWEEN SYMMETRIC '${dateFrom}' AND '${dateTo}'`
-    delete data.dt;
+        if (dateFrom !== dateTo)
+            dateString = `dt BETWEEN SYMMETRIC '${dateFrom}' AND '${dateTo}'`
+        delete data.dt;
 
-    const opMode = `mode='${data.mode}'`
-    delete data.mode;
+        const opMode = `mode='${data.mode}'`
+        delete data.mode;
 
-    let conditions = data.conditions;
-    if (conditions.condition === "day") {
-        switch (conditions.value) {
-            case "min":  conditions="min_hv"; break;
-            case "mean": conditions="avg_hv"; break;
-            case "max":  conditions="max_hv"; break;
+        let conditions = data.conditions;
+        if (conditions.condition === "day") {
+            switch (conditions.value) {
+                case "min":  conditions="min_hv"; break;
+                case "mean": conditions="avg_hv"; break;
+                case "max":  conditions="max_hv"; break;
+            }
+            conditions += ` BETWEEN ${data.hv2.from} AND ${data.hv2.to}`;
         }
-        conditions += ` BETWEEN ${data.hv2.from} AND ${data.hv2.to}`;
+        else
+            conditions = "avg_hv<=128";
+        delete data.conditions;
+        delete data.hv2;
+
+        const coords = [];
+        for (const name in data) {
+            const coord = data[name];
+            if (coord.from !== null && coord.to !== null)
+                coords.push(`${name} BETWEEN ${coord.from} AND ${coord.to}`);
+            else if (coord.from !== null)
+                coords.push(`${name}>=${coord.from}`)
+            else if (coord.to !== null)
+                coords.push(`${name}<=${coord.to}`)
+        }
+
+        const all = [ dateString, opMode, conditions, ...coords ];
+
+        return "SELECT ref FROM tus WHERE " + all.join(" AND ") + ` LIMIT ${filesLimit};`;
+    } catch (err) {
+        console.log(`Error on parser: ${err}`);
+        return "REJECTED";
     }
-    else
-        conditions = `avg_hv<=128`;
-    delete data.conditions;
-    delete data.hv2;
-
-    const coords = [];
-    for (const name in data) {
-        const coord = data[name];
-        if (coord.from !== null && coord.to !== null)
-            coords.push(`${name} BETWEEN ${coord.from} AND ${coord.to}`);
-        else if (coord.from !== null)
-            coords.push(`${name}>=${coord.from}`)
-        else if (coord.to !== null)
-            coords.push(`${name}<=${coord.to}`)
-    }
-
-    const all = [ dateString, opMode, conditions, ...coords ];
-
-    return "SELECT ref FROM tus WHERE " + all.join(" AND ") + ` LIMIT ${filesLimit};`;
 }
 
 
 const psqlSearch = async (data) => {
     console.log("Generating query string...");
     const reqStr = generateString(data);
+
+    if (reqStr === "REJECTED") {
+        console.log("Invalid input data. Rejecting...");
+        return { status: 3 };
+    }
 
     console.log("Checking if query exists...");
     if (doneQuerys.has(reqStr)) {
