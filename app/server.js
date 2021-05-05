@@ -6,6 +6,9 @@ const tar = require('tar-stream')
 const { createGzip } = require('zlib');
 const path = require('path')
 const fs = require('fs')
+const { pipeline } = require('stream')
+const { promisify } = require('util')
+const pipe = promisify(pipeline)
 
 ////////////////////////////////////////////////////////////
 const ARCHNAME = "pribor_tus_sputnik_lomonosov.tar.gz";
@@ -48,37 +51,36 @@ app.get('/download', async (req, res) => {
         const files = getFileList(id);
         if (files === undefined)
             throw "Error: Invalid download url";
-
         res.setHeader('Content-Disposition', `attachment; filename="${ARCHNAME}"`)
 
-        const handleError = (e, filepath) => {
-            console.log(`There is an error with ${filepath}`);
-            setError(id, e);
+        const addFileImpl = promisify((name, size, filepath, callback) => {
+            const entry = pack.entry({ name, size }, callback)
+            fs.createReadStream(filepath)
+                .on('error', (e) => console.log(`Piping ${e}`))
+                .on('end', () => entry.end())
+                .pipe(entry)
+        })
+
+        const addFile = async (name, filepath) => {
+            const { size } = await fs.promises.stat(filepath)
+                .catch(err => {
+                    console.log(`Stat ${err}`);
+                    setError(id, err);
+                    return { size: null };
+                });
+            if (size !== null)
+                await addFileImpl(name, size, filepath)
         }
 
         const pack = tar.pack()
-        pack.pipe(createGzip()).pipe(res)
-
+        const promise = pipe(pack, createGzip(), res)
         for (const i in files) {
-            const filepath = DATAPATH + files[i];
-            const { size } = await fs.promises.stat(filepath)
-                .catch(e => { handleError(e, filepath); return { size: null }; });
-
-            if (size === null) continue;
-
-            const entry = pack.entry({ name: files[i], size });
-            await new Promise((response, reject) => {
-                fs.createReadStream(filepath)
-                    .on('close', response)
-                    .on('error', reject)
-                    .pipe(entry);
-            })
-            .then(() => entry.end())
-            .catch(e => handleError(e, filepath));
-        };
+            await addFile(files[i], DATAPATH + files[i])
+        }
+        pack.finalize();
+        await promise
 
         console.log(`Archive generated for request with an id: ${id}`);
-        pack.finalize();
         res.end();
 
     } catch (e) {
