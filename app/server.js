@@ -1,4 +1,5 @@
 const { psqlSearch, getFileList, getErrorList, setError } = require('./psqlSearch.js');
+const { config } = require("./loadConfig.js");
 const bodyParser = require('body-parser');
 const express = require('express')
 const tar = require('tar-stream')
@@ -6,17 +7,31 @@ const { createGzip } = require('zlib');
 const path = require('path')
 const fs = require('fs')
 
-//const ARCHNAME = "прибор_tus_спутника_lomonosov.tar.gz";
+////////////////////////////////////////////////////////////
 const ARCHNAME = "pribor_tus_sputnik_lomonosov.tar.gz";
-const DATAPATH = process.env.TUS_DATAPATH;
-const PORT = process.argv.length > 2 ? process.argv[2] : 8080;
-const app = express();
+let DATAPATH = (() => {
+    if (process.env.TUS_DATAPATH)
+        return process.env.TUS_DATAPATH;
+    if (config.dbpath !== '')
+        return config.dbpath;
+    return undefined;
+})();
+
+const PORT = (() => {
+    if (process.argv.length > 2)
+        return process.argv[2];
+    else if (config.port)
+        return config.port;
+    return 8080;
+})();
 
 if (DATAPATH === undefined) {
-    console.log("Error: envirment varibale TUS_DATAPATH is not set");
+    console.log("Error: path to the database is not set");
     process.exit(1);
 }
+////////////////////////////////////////////////////////////
 
+const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(express.static(path.resolve(__dirname, 'public/')));
@@ -37,7 +52,7 @@ app.get('/download', async (req, res) => {
         res.setHeader('Content-Disposition', `attachment; filename="${ARCHNAME}"`)
 
         const handleError = (e, filepath) => {
-            console.log(`There is and error with ${filepath}`);
+            console.log(`There is an error with ${filepath}`);
             setError(id, e);
         }
 
@@ -62,7 +77,7 @@ app.get('/download', async (req, res) => {
             .catch(e => handleError(e, filepath));
         };
 
-        console.log(`Archive generated for request with id: ${id}`);
+        console.log(`Archive generated for request with an id: ${id}`);
         pack.finalize();
         res.end();
 

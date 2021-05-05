@@ -1,18 +1,11 @@
-const { requireSafe } = require('./requireWrap.js');
+const { config } = require("./loadConfig.js");
 const { Pool } = require("pg");
 const randstr = require("randomstring");
 
 //////////////////////////////////////////////////////////////////
-console.log("Reading data base config...");
-const dbconf = requireSafe("./database.json");
-if (dbconf === undefined) {
-    console.log("Error: Incorrect or missing 'database.json'");
-    process.exit(1);
-}
-else {//check if connection to db is ok
-    console.log("ok!");
+if (config) {//check if connection to db is ok
     console.log("Checking database connection...");
-    const psql = new Pool(dbconf);
+    const psql = new Pool(config.pool);
     psql.query("SELECT * FROM tus LIMIT 0;")
         .then(() => console.log("ok!"))
         .catch(err => {
@@ -70,9 +63,15 @@ const generateString = (data) => {
                 coords.push(`${name}<=${coord.to}`)
         }
 
-        const all = [ dateString, opMode, conditions, ...coords ];
+        const args = [ dateString, opMode, conditions, ...coords ];
 
-        return "SELECT ref FROM tus WHERE " + all.join(" AND ") + ` ORDER BY dt LIMIT ${filesLimit};`;
+        const begin = (() => {
+            if (config.schema !== '')
+                return `SELECT ref FROM ${config.schema}.tus WHERE `;
+            return `SELECT ref FROM tus WHERE `;
+        })();
+
+        return begin + args.join(" AND ") + ` ORDER BY dt LIMIT ${filesLimit};`;
     } catch (err) {
         console.log(`Error on parser: ${err}`);
         return "REJECTED";
@@ -100,7 +99,7 @@ const psqlSearch = async (data) => {
     console.log(reqStr);
 
     console.log("Creating psql pool");
-    const psql = new Pool(dbconf);
+    const psql = new Pool(config.pool);
 
     try {
         const res = await psql.query(reqStr);
