@@ -13,6 +13,8 @@ Instll all dependencies via npm and build the app.
 npm install
 npm run build
 ```
+
+## Note
 Don't forget to add file `config.json` to app folder. It should look like this:
 ```json
 {
@@ -32,12 +34,10 @@ Don't forget to add file `config.json` to app folder. It should look like this:
 Note that `port` and `dbpath` might be ignored depending on initial conditions.
 
 ## Usage
-Environment variable `TUS_DATAPATH` should be set to the folder
+Environment variable `TUS_DATAPATH` or config.dbpath should be set to the folder
 with data mentioned in the database.
 
 Simply start the server and open `http://localhost:8080` in your browser.
 ```bash
-npm run prod
-#or
 node app/server.js [port]
 ```
