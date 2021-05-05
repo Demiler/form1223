@@ -3,10 +3,17 @@ const { Pool } = require("pg");
 const randstr = require("randomstring");
 
 //////////////////////////////////////////////////////////////////
+
+const filesMap = new Map();
+const doneQuerys = new Map();
+const queryClearTimeout = 1 * 60 * 60 * 1000; //one hour in millis
+const databaseName = (config.schema === '') ? "tus" : `${config.schema}.tus`;
+
+//////////////////////////////////////////////////////////////////
 if (config) {//check if connection to db is ok
     console.log("Checking database connection...");
     const psql = new Pool(config.pool);
-    psql.query("SELECT * FROM tus LIMIT 0;")
+    psql.query(`SELECT * FROM ${databaseName} LIMIT 0;`)
         .then(() => console.log("ok!"))
         .catch(err => {
             console.log(`PSQL ${err}`)
@@ -14,12 +21,6 @@ if (config) {//check if connection to db is ok
         });
     psql.end();
 }
-//////////////////////////////////////////////////////////////////
-
-const filesMap = new Map();
-const doneQuerys = new Map();
-const queryClearTimeout = 1 * 60 * 60 * 1000; //one hour in millis
-
 //////////////////////////////////////////////////////////////////
 
 const generateString = (data) => {
@@ -64,12 +65,7 @@ const generateString = (data) => {
         }
 
         const args = [ dateString, opMode, conditions, ...coords ];
-
-        const begin = (() => {
-            if (config.schema !== '')
-                return `SELECT ref FROM ${config.schema}.tus WHERE `;
-            return `SELECT ref FROM tus WHERE `;
-        })();
+        const begin = `SELECT ref FROM ${databaseName} WHERE `;
 
         return begin + args.join(" AND ") + ` ORDER BY dt LIMIT ${filesLimit};`;
     } catch (err) {

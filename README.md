@@ -1,4 +1,13 @@
 ## Installation
+You can download compiled and archvied version of the form from releases section.
+[Link to latest release]: https://github.com/demiler/form1223/releases/latest
+Then just untar archvie:
+```bash
+tar -xf release_vN.tar.gz
+```
+
+
+## Compilation
 Instll all dependencies via npm and build the app.
 ```bash
 npm install
