@@ -85,17 +85,17 @@ class LightCondition extends LitElement {
         ];
         this.nowEl.tar.classList.add('active');
         this.valEl.tar.classList.add('active');
-        this.enableButtons();
+        this.disableButtons();
     }
 
     render() {
         return html`
             <div id="daynight">
                 <button class='item' id="day" @click=${this.pick}  >
-                    ДЕНЬ (avg_hv >= 128)
+                    ДЕНЬ (avg_hv <= 128)
                 </button>
                 <button class='item' id="night" @click=${this.pick}>
-                    НОЧЬ (avg_hv < 128)
+                    НОЧЬ (avg_hv > 128)
                 </button>
             </div>
             <div id="values">
@@ -115,7 +115,7 @@ class LightCondition extends LitElement {
     }
 
     changeValue(target, newVal) {
-        if (this.now === "day") {
+        if (this.now === "night") {
             this.value = newVal;
             this.updateTarget(this.valEl, target);
         }
@@ -135,12 +135,12 @@ class LightCondition extends LitElement {
         switch (e.target.id) {
             case "day":
                 this.now = "day";
-                this.enableButtons();
+                this.disableButtons();
                 this.updateTarget(this.nowEl, e.target);
                 break;
             case "night":
                 this.now = "night";
-                this.disableButtons();
+                this.enableButtons();
                 this.updateTarget(this.nowEl, e.target);
                 break;
             default:

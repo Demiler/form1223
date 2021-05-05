@@ -14,24 +14,11 @@ class Form1223 extends LitElement {
                 display: grid;
                 grid-template-columns: 400px 400px;
                 grid-gap: 0 20px;
-                /*display: flex;
-                flex-wrap: wrap;
-                font-size: 14pt;*/
-
-                /*-webkit-column-count: 2;
-                -moz-column-count: 2;
-                column-count: 2;
-                -webkit-column-gap: 25px;
-                -moz-column-gap: 25px;
-                column-gap: 25px;*/
-
-                /*width: 800px;*/
                 font-family: sans;
             }
 
             :host > * {
                 margin-bottom: 10px;
-                /*width: calc(100% / 1 - 25px / 2);*/
             }
 
             reg-date {
@@ -55,6 +42,28 @@ class Form1223 extends LitElement {
 
             #HV2 {
                 grid-column: auto / span 2;
+                position: relative;
+            }
+
+            #HV2::after {
+                content: ' ';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: #ffffffa0;
+                border-radius: inherit;
+                z-index: 2;
+                opacity: 0;
+                transition: .2s;
+                pointer-events: none;
+            }
+
+            #HV2[disabled]::after {
+                opacity: 1;
+                pointer-events: auto;
+                cursor: not-allowed;
             }
 
             .adc {
@@ -97,6 +106,7 @@ class Form1223 extends LitElement {
     static get properties() {
         return {
             reminderText: { type: String },
+            disableSlider: { type: Boolean },
         };
     }
 
@@ -116,6 +126,7 @@ class Form1223 extends LitElement {
         this.filesLimit = 10;
 
         this.reminderText = "";
+        this.disableSlider = true;
     }
 
     firstUpdated() {
@@ -179,7 +190,7 @@ class Form1223 extends LitElement {
             </div>
 
 
-            <div id='HV2'>
+            <div id='HV2' ?disabled=${this.disableSlider}>
                 <hv2-slider @update=${this.updateIntens}></hv2-slider>
             </div>
 
@@ -238,6 +249,8 @@ class Form1223 extends LitElement {
 
     updateLigCond(e) {
         this.conditions = e.detail;
+        console.log(this.conditions);
+        this.disableSlider = (this.conditions.condition === "day");
     }
 
     updateOpMode(e) {

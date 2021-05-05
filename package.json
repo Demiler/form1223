@@ -7,7 +7,7 @@
     "build": "webpack --config webpack.prod.js",
     "dev": "webpack-dev-server --config webpack.dev.js",
     "dev:server": "nodemon ./app/server.js",
-    "makeRelease": "tar -czvf release.tar.gz ./app",
+    "makeRelease": "tar -czf release_vN.tar.gz app/public app/requireWrap.js app/server.js app/loadConfig.js app/psqlSearch.js app/node_modules",
     "prod": "node ./app/server.js"
   },
   "author": "",

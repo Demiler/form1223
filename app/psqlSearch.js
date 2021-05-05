@@ -40,7 +40,7 @@ const generateString = (data) => {
         delete data.mode;
 
         let conditions = data.conditions;
-        if (conditions.condition === "day") {
+        if (conditions.condition === "night") {
             switch (conditions.value) {
                 case "min":  conditions="min_hv"; break;
                 case "mean": conditions="avg_hv"; break;
