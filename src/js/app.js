@@ -249,8 +249,10 @@ class Form1223 extends LitElement {
 
     updateLigCond(e) {
         this.conditions = e.detail;
-        console.log(this.conditions);
-        this.disableSlider = (this.conditions.condition === "day");
+        if (this.conditions.condition === "night" && this.conditions.value === "mean")
+            this.disableSlider = false;
+        else
+            this.disableSlider = true;
     }
 
     updateOpMode(e) {
