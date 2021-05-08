@@ -1,5 +1,7 @@
 const { psqlSearch, getFileList, getErrorList, setError } = require('./psqlSearch.js');
 const { config } = require("./loadConfig.js");
+const { MinMax } = require("./minmax.js");
+const errors = require('./errors.js');
 const bodyParser = require('body-parser');
 const express = require('express')
 const tar = require('tar-stream')
@@ -34,6 +36,9 @@ if (DATAPATH === undefined) {
 }
 ////////////////////////////////////////////////////////////
 
+const databaseName = (config.schema === '') ? "tus" : `${config.schema}.tus`;
+const defaultVals = new MinMax(databaseName);
+
 const app = express();
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -45,19 +50,33 @@ app.get('/', (req, res) => {
 
 app.get('/download', async (req, res) => {
     const id = req.query.id;
-    console.log('GET download request with an id:', id);
+    const token = req.query.token;
+    console.log(`GET download request with an id - ${id} and token - ${token}`);
+
+    if (token === '' || token === undefined) {
+        console.log("Error: Invalid token");
+        res.status(400).end();
+        return;
+    }
+
+    const files = getFileList(id);
+    if (files === undefined) {
+        console.log("Error: Invalid download url");
+        res.status(400).end();
+        return;
+    }
 
     try {
-        const files = getFileList(id);
-        if (files === undefined)
-            throw "Error: Invalid download url";
         res.setHeader('Content-Disposition', `attachment; filename="${ARCHNAME}"`)
 
         const addFileImpl = promisify((name, size, filepath, callback) => {
             const entry = pack.entry({ name, size }, callback)
             fs.createReadStream(filepath)
-                .on('error', (e) => console.log(`Piping ${e}`))
                 .on('end', () => entry.end())
+                .on('error', (e) => {
+                    console.log(`Piping ${e}`)
+                    errors.setError(token, `Unabled to pipe ${name}: ${e}`);
+                })
                 .pipe(entry)
         })
 
@@ -65,13 +84,14 @@ app.get('/download', async (req, res) => {
             const { size } = await fs.promises.stat(filepath)
                 .catch(err => {
                     console.log(`Stat ${err}`);
-                    setError(id, err);
+                    errors.setError(token, `File ${name} is inaccessible`);
                     return { size: null };
                 });
             if (size !== null)
                 await addFileImpl(name, size, filepath)
         }
 
+        errors.holdErrors(token);
         const pack = tar.pack()
         const promise = pipe(pack, createGzip(), res)
         for (const i in files) {
@@ -82,6 +102,7 @@ app.get('/download', async (req, res) => {
 
         console.log(`Archive generated for request with an id: ${id}`);
         res.end();
+        errors.releaseErrors(token);
 
     } catch (e) {
         console.error(e);
@@ -91,8 +112,7 @@ app.get('/download', async (req, res) => {
 
 app.post('/get', async (req, res) => {
     console.log('POST get');
-    let search;
-    await psqlSearch(req.body).then(res => search = res)
+    const search = await psqlSearch(req.body);
     console.log();
 
     res.setHeader('Content-Type', 'application/json');
@@ -112,21 +132,28 @@ app.post('/get', async (req, res) => {
     }
 });
 
-app.get('/errors', (req, res) => {
-    const id = req.query.id;
-    console.log('GET errors request with an id:', id);
-    const errors = getErrorList(id);
-    if (errors === undefined) {
-        console.log("Incorrect id provided");
-        res.status(500).end();
-    }
-    else {
-        res.setHeader('Content-Type', 'application/json');
-        res.send(JSON.stringify(Array.from(errors)));
-    }
-    console.log();
+app.get('/default', async (req, res) => {
+    console.log('GET default');
+    res.send(await defaultVals.send());
+});
+
+app.get('/errors', async (req, res) => {
+    console.log('GET errors request with a token:', req.query.token);
+
+    errors.onComplition(req.query.token, (errList) => {
+        if (errList === undefined) {
+            console.log("Incorrect token provided");
+            res.status(500).end();
+        }
+        else {
+            console.log('Responding to token:', req.query.token);
+            res.setHeader('Content-Type', 'application/json');
+            res.send(JSON.stringify(Array.from(errList)));
+        }
+        console.log();
+    });
 });
 
 app.listen(PORT, () => {
-    console.log(`Starting express server on http://localhost:${PORT}`);
+    console.log(`Starting express server on port ${PORT}`);
 });
