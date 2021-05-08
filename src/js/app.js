@@ -145,7 +145,7 @@ class Form1223 extends LitElement {
                     name="latgeo" .value=${this.latgeo}>Широта:</fromto-input>
                 <fromto-input class="longitude" @update=${this.updateRange}
                     name="longeo" .value=${this.longeo}>Долгота:</fromto-input>
-                <fromto-input class="altitude" @update=${this.updateRange}
+                <fromto-input class="altitude" @update=${this.updateRange} .order=${true}
                     name="altgeo" .value=${this.altgeo}>Высота:</fromto-input>
             </div>
 
@@ -155,16 +155,16 @@ class Form1223 extends LitElement {
                     name="latdm" .value=${this.latdm}>Широта:</fromto-input>
                 <fromto-input class="longitude" @update=${this.updateRange}
                     name="londm" .value=${this.londm}>Долгота:</fromto-input>
-                <fromto-input class="altitude" @update=${this.updateRange}
+                <fromto-input class="altitude" @update=${this.updateRange} .order=${true}
                     name="r" .value=${this.r}>R:</fromto-input>
             </div>
 
             <div id="LBcrd">
                 <div class='title'>Геодезические Координаты</div>
 
-                <fromto-input class="lcrd" @update=${this.updateRange}
+                <fromto-input class="lcrd" @update=${this.updateRange} .order=${true}
                     name="l" .value=${this.l}>L-коорд:</fromto-input>
-                <fromto-input class="bcrd" @update=${this.updateRange}
+                <fromto-input class="bcrd" @update=${this.updateRange} .order=${true}
                     name="b" .value=${this.b}>B-коорд:</fromto-input>
             </div>
 
@@ -225,12 +225,14 @@ class Form1223 extends LitElement {
     trySend() {
         const data = JSON.stringify({
             dt: this.dt,
-            latgeo: this.latgeo, longeo: this.longeo, altgeo: this.altgeo,
-            latdm: this.latdm, londm: this.londm, r: this.r,
-            l: this.l, b: this.b,
+            ranges: {
+                latgeo: this.latgeo, longeo: this.longeo, altgeo: this.altgeo,
+                latdm:  this.latdm,  londm:  this.londm,  r:      this.r,
+                l:      this.l,      b:      this.b,
+                max_adc: this.max_adc,
+            },
             conditions: this.conditions,
             mode: this.mode,
-            max_adc: this.max_adc,
             hv2: this.hv2,
             filesLimit: this.filesLimit,
         });

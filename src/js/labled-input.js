@@ -77,7 +77,7 @@ class LabledInput extends LitElement {
     update(props) {
         super.update(props);
         if (props.has('value'))
-            this.active = !utils.isBlank(this.value) || this.value === 0;
+            this.active = this.focused || !utils.isBlank(this.value) || this.value === 0;
     }
 
     focus() {

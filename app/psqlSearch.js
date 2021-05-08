@@ -26,7 +26,6 @@ if (config) {//check if connection to db is ok
 const generateString = (data) => {
     try {
         const filesLimit = data.filesLimit;
-        delete data.filesLimit;
 
         const dateFrom = `${data.dt.from.date} ${data.dt.from.time}`
         const dateTo = `${data.dt.to.date} ${data.dt.to.time}`
@@ -34,10 +33,8 @@ const generateString = (data) => {
 
         if (dateFrom !== dateTo)
             dateString = `dt BETWEEN SYMMETRIC '${dateFrom}' AND '${dateTo}'`
-        delete data.dt;
 
         const opMode = `mode='${data.mode}'`
-        delete data.mode;
 
         let conditions = data.conditions;
         if (conditions.condition === "night") {
@@ -50,21 +47,24 @@ const generateString = (data) => {
         }
         else
             conditions = "avg_hv<=128";
-        delete data.conditions;
-        delete data.hv2;
 
-        const coords = [];
-        for (const name in data) {
-            const coord = data[name];
-            if (coord.from !== null && coord.to !== null)
-                coords.push(`${name} BETWEEN ${coord.from} AND ${coord.to}`);
-            else if (coord.from !== null)
-                coords.push(`${name}>=${coord.from}`)
-            else if (coord.to !== null)
-                coords.push(`${name}<=${coord.to}`)
+        const cycleVals = new Set([ "latgeo", "longeo", "latdm", "londm" ]);
+        const ranges = [];
+        for (const name in data.ranges) {
+            const range = data.ranges[name];
+            if (range.from !== null && range.to !== null) {
+                if (range.from < range.to)
+                    ranges.push(`${name} BETWEEN ${range.from} AND ${range.to}`);
+                else if (cycleVals.has(name))
+                    ranges.push(`${name} NOT BETWEEN ${range.to} AND ${range.from}`);
+            }
+            else if (range.from !== null)
+                ranges.push(`${name}>=${range.from}`)
+            else if (range.to !== null)
+                ranges.push(`${name}<=${range.to}`)
         }
 
-        const args = [ dateString, opMode, conditions, ...coords ];
+        const args = [ dateString, opMode, conditions, ...ranges ];
         const begin = `SELECT ref FROM ${databaseName} WHERE `;
 
         return begin + args.join(" AND ") + ` ORDER BY dt LIMIT ${filesLimit};`;
