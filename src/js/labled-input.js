@@ -52,7 +52,7 @@ class LabledInput extends LitElement {
     }
 
     firstUpdated() {
-        this.active = !utils.isBlank(this.value)
+        this.active = !utils.isBlank(this.value) || this.value === 0;
         this.inputEl = this.shadowRoot.querySelector("input");
         this.addEventListener('click', () => this.inputEl.focus());
 
@@ -74,6 +74,12 @@ class LabledInput extends LitElement {
         `;
     }
 
+    update(props) {
+        super.update(props);
+        if (props.has('value'))
+            this.active = !utils.isBlank(this.value) || this.value === 0;
+    }
+
     focus() {
         this.inputEl.focus();
     }
@@ -88,13 +94,13 @@ class LabledInput extends LitElement {
 
     blured() {
         this.focused = false;
-        this.active = !utils.isBlank(this.value);
+        this.active = !utils.isBlank(this.value) || this.value === 0;
     }
 
     change(e) {
         utils.redispatchEvent(e);
         this.value = e.target.value;
-        this.active = this.focused || !utils.isBlank(this.value);
+        this.active = this.focused || !utils.isBlank(this.value) || this.value === 0;
     }
 
 }

@@ -7,7 +7,7 @@ class FromToInput extends LitElement {
         return css`
             :host {
                 --title-width: 100px;
-                --input-width: 80px;
+                --input-width: 100px;
 
                 margin-top: 20px;
                 margin-bottom: 20px;
@@ -63,11 +63,17 @@ class FromToInput extends LitElement {
         this.active = false;
         this.value = { from: null, to: null };
         this.err = { from: false, to: false };
+        this.order = false;
     }
 
     firstUpdated() {
         this.addEventListener('blur', () => {
-            if (this.value.from !== null && this.value.to !== null && this.value.from > this.value.to)
+            if (
+                this.order &&
+                this.value.from !== null &&
+                this.value.to !== null &&
+                this.value.from > this.value.to
+            )
                 this.swap();
             this.deactivate()
         })
@@ -121,9 +127,9 @@ class FromToInput extends LitElement {
     }
 
     sendChange() {
-        let event = new CustomEvent('update', { 
+        let event = new CustomEvent('update', {
             detail: { from: this.value.from, to: this.value.to },
-            bubbles: true, 
+            bubbles: true,
             composed: true });
         this.dispatchEvent(event);
     }

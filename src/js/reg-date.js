@@ -57,12 +57,12 @@ class RegDate extends LitElement {
                 <span class='label'>От</span>
 
                 <date-picker name="from" class='date'
-                value="2000-01-01"
+                value="2016-05-19"
                 @date-update=${this.updateDate}
                 ></date-picker>
 
                 <time-picker name="from" class='time'
-                value="00:00:00"
+                value="07:31:10"
                 @time-update=${this.updateTime}
                 ></time-picker>
             </div>
@@ -71,10 +71,12 @@ class RegDate extends LitElement {
                 <span class='label'>До</span>
 
                 <date-picker name="to" class='date'
+                value="2017-11-30"
                 @date-update=${this.updateDate}
                 ></date-picker>
 
                 <time-picker name="to" class='time'
+                value="20:22:37"
                 @time-update=${this.updateTime}
                 ></time-picker>
             </div>

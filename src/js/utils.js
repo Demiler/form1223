@@ -36,6 +36,15 @@ export const isObjectType = (value) => {
     return value != null && typeof value == 'object' && !Array.isArray(value);
 }
 
+const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+export const genToken = (length) => {
+    const result = [];
+    const charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ )
+        result.push(characters.charAt(Math.floor(Math.random() * charactersLength)));
+    return result.join('');
+}
+
 export const isObjectEmpty = (obj) => {
     return obj && Object.keys(obj).length === 0 && obj.constructor === Object;
 }

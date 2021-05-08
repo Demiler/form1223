@@ -1,4 +1,5 @@
 import { LitElement, html, css } from 'lit-element'
+import { defaultVals } from './default'
 import * as utils from './utils'
 import './reg-date'
 import './light-conditions'
@@ -112,21 +113,13 @@ class Form1223 extends LitElement {
 
     constructor() {
         super();
-        this.dt     = { from: null, to: null };
-        this.latgeo = { from: null, to: null };
-        this.longeo = { from: null, to: null };
-        this.altgeo = { from: null, to: null };
-        this.latdm =  { from: null, to: null };
-        this.londm =  { from: null, to: null };
-        this.r =      { from: null, to: null };
-        this.l =      { from: null, to: null };
-        this.b =      { from: null, to: null };
-        this.max_adc ={ from: null, to: null };
-        this.mode = "eas";
-        this.filesLimit = 10;
+        defaultVals.init(() => {
+            defaultVals.set(this);
+            this.requestUpdate();
+        });
+        defaultVals.set(this);
 
         this.reminderText = "";
-        this.disableSlider = true;
     }
 
     firstUpdated() {
@@ -136,13 +129,14 @@ class Form1223 extends LitElement {
 
         this.reminderEl = this.shadowRoot.querySelector("#reminder-text");
         this.downloadEl = this.shadowRoot.querySelector("download-button");
+        this.disableSlider = (this.conditions.condition === "day");
     }
 
     render() {
         return html`
             <div id="reg-data">
                 <div class='title'>Дата Регистрации</div>
-                <reg-date @reg-update=${this.updateDateRange}></reg-date>
+                <reg-date value=${this.dt} @reg-update=${this.updateDateRange}></reg-date>
             </div>
 
             <div class='coords' id="geocrd">
@@ -178,7 +172,7 @@ class Form1223 extends LitElement {
                 <div class='title'>Режим Работы</div>
                 <op-mode .value=${this.mode} @update=${this.updateOpMode}></op-mode>
 
-                <fromto-input class="adc" @update=${this.updateRange}
+                <fromto-input class="adc" @update=${this.updateRange} .order=${true}
                 name="max_adc" .min=${0} .max=${1024} .value=${this.max_adc}
                 >Аналогово-цифровой Преобразователь:</fromto-input>
 
@@ -249,10 +243,7 @@ class Form1223 extends LitElement {
 
     updateLigCond(e) {
         this.conditions = e.detail;
-        if (this.conditions.condition === "night" && this.conditions.value === "mean")
-            this.disableSlider = false;
-        else
-            this.disableSlider = true;
+        this.disableSlider = (this.conditions.condition === "day");
     }
 
     updateOpMode(e) {

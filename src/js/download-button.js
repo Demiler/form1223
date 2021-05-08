@@ -1,4 +1,5 @@
-import { LitElement, html, css } from 'lit-element'
+import { LitElement, html, css } from 'lit-element';
+import { genToken } from './utils';
 
 class DownloadButton extends LitElement {
     static get styles() {
@@ -108,6 +109,7 @@ class DownloadButton extends LitElement {
 
     download(body) {
         this.wait();
+
         console.log('sending request');
         fetch(`${window.location.href}get`, {
             method: 'POST',
@@ -136,8 +138,8 @@ class DownloadButton extends LitElement {
         });
     }
 
-    askForErrors(id) {
-        fetch(`${window.location.href}errors?id=${id}`, {
+    askForErrors(token) {
+        fetch(`${window.location.href}errors?token=${token}`, {
             method: 'GET',
             headers: { 'Accept': 'application/json' },
         })
@@ -171,9 +173,10 @@ class DownloadButton extends LitElement {
 
     downloadData(id) {
         this.wait();
-        this.linkEl.href = `${window.location.href}download?id=${id}`;
+        const token = genToken(12);
+        this.linkEl.href = `${window.location.href}download?id=${id}&token=${token}`;
         this.linkEl.click();
-        setTimeout(() => this.askForErrors(id), 2000);
+        setTimeout(() => this.askForErrors(token), 2000);
         setTimeout(() => this.unwait(), 2000);
     }
 
