@@ -4,8 +4,8 @@ const { config } = require("./loadConfig.js");
 class MinMax {
     constructor(database) {
         this.dt = {
-            from: { data: '2016-05-19', time: '07:31:10'},
-            to: { data: '2017-11-30', time: '20:22:37'},
+            from: { date: '2016-05-19', time: '07:31:10'},
+            to: { date: '2017-11-30', time: '20:22:37'},
         }
 
         this.data = new Object();

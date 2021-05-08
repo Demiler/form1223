@@ -25,7 +25,7 @@ const setError = (token, error) => {
 const onComplition = (token, callback) => {
     if (completed.has(token)) {
         completed.delete(token);
-        callCallback(token, callCallback)
+        callCallback(token, callback)
     }
     else if (errorList.has(token)) {
         callbacks.set(token, callback);

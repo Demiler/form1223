@@ -1,6 +1,8 @@
 class DefaultValues {
     constructor() {
-        this.dt     = { from: null, to: null };
+        this.dt     =
+            { from: { date: null, time: null },
+                to: { date: null, time: null }};
         this.latgeo = { from: null, to: null };
         this.longeo = { from: null, to: null };
         this.altgeo = { from: null, to: null };
