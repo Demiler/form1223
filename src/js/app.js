@@ -242,7 +242,7 @@ class Form1223 extends LitElement {
         this.reminderTO = setTimeout(() => {
             this.reminderEl.classList.remove(type);
             this.reminderEl.hidden = true;
-        }, 4000);
+        }, 10000);
         this.lastRemType = type;
     }
 
