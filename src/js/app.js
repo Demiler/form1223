@@ -83,16 +83,26 @@ class Form1223 extends LitElement {
                 display: block;
                 position: absolute;
                 padding: 8px;
-                background-color: #faaeb8;
+                background-color: transparent;
 
-                top: 0px;
                 left: 0px;
                 transition: .3s;
                 border-radius: 8px;
             }
 
             #reminder-text[hidden] {
-                top: -100%;
+                display: block;
+                top: -100px;
+            }
+
+            #reminder-text.message {
+                top: 0;
+                background-color: #cfe6ff;
+            }
+
+            #reminder-text.error {
+                top: 0;
+                background-color: #faaeb8;
             }
 
             #result {
@@ -195,6 +205,7 @@ class Form1223 extends LitElement {
                 @request=${this.trySend}
                 @notfound=${this.notFound}
                 @error=${this.reqError}
+                @got-count=${this.showGotCount}
                 >Получить</download-button>
             </div>
 
@@ -204,22 +215,41 @@ class Form1223 extends LitElement {
         `;
     }
 
+    showGotCount(e) {
+        this.showMessage(`Файлов найдено: ${e.detail}`);
+    }
+
     reqError(e) {
         if (e.detail)
-            this.showReminder(`Ошибка сервера: ${e.detail}`);
+            this.showError(`Ошибка сервера: ${e.detail}`);
         else
-            this.showReminder("Ошибка сервера");
+            this.showError("Ошибка сервера");
     }
 
     notFound() {
-        this.showReminder("По запросу не было найдено записей");
+        this.showError("По запросу не было найдено записей");
     }
 
-    showReminder(text) {
+    showMessage(text) {
         clearTimeout(this.reminderTO);
         this.reminderText = text;
         this.reminderEl.hidden = false;
-        this.reminderTO = setTimeout(() => this.reminderEl.hidden = true, 4000);
+        this.reminderEl.classList.add('message');
+        this.reminderTO = setTimeout(() => {
+            this.reminderEl.classList.remove('message');
+            this.reminderEl.hidden = true;
+        }, 4000);
+    }
+
+    showError(text) {
+        clearTimeout(this.reminderTO);
+        this.reminderText = text;
+        this.reminderEl.hidden = false;
+        this.reminderEl.classList.add('error');
+        this.reminderTO = setTimeout(() => {
+            this.reminderEl.classList.remove('error');
+            this.reminderEl.hidden = true;
+        }, 4000);
     }
 
     trySend() {

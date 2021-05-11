@@ -115,7 +115,7 @@ class DownloadButton extends LitElement {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Accept': 'text/plain'
+                'Accept': 'application/json',
             },
             body
         })
@@ -126,7 +126,10 @@ class DownloadButton extends LitElement {
                 case 404:
                     this.sendNotFound(); break;
                 case 200:
-                    res.text().then(id => this.downloadData(id)); break;
+                    res.json().then(data => {
+                        this.notifyCount(data.count);
+                        this.downloadData(data.id);
+                    }); break;
                 default:
                     this.sendError()
             }
@@ -154,6 +157,13 @@ class DownloadButton extends LitElement {
         .catch(() => {}); //ignore
     }
 
+    notifyCount(count) {
+        this.dispatchEvent(new CustomEvent('got-count', {
+            detail: count,
+            bubbles: true,
+            composed: true
+        }));
+    }
 
     sendRequest(e) {
         let event = new CustomEvent('request', {
