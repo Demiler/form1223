@@ -23,7 +23,7 @@ if (config) {//check if connection to db is ok
 }
 //////////////////////////////////////////////////////////////////
 
-const generateString = (data) => {
+const generateRawString = (data) => {
     try {
         const filesLimit = data.filesLimit;
 
@@ -65,21 +65,31 @@ const generateString = (data) => {
         }
 
         const args = [ dateString, opMode, conditions, ...ranges ];
-        const begin = `SELECT ref FROM ${databaseName} WHERE `;
 
-        return begin + args.join(" AND ") + ` ORDER BY dt LIMIT ${filesLimit};`;
+        return args.join(" AND ")
     } catch (err) {
         console.log(`Error on parser: ${err}`);
         return "REJECTED";
     }
 }
 
+const wrapQueryString = (str, filesLimit) => {
+    const head = `SELECT ref FROM ${databaseName} WHERE `;
+    const tail = ` ORDER BY dt LIMIT ${filesLimit};`;
+    return head + str + tail;
+}
+
+const wrapCountString = (str) => {
+    return `SELECT COUNT(ref) FROM ${databaseName} WHERE ` + str;
+}
 
 const psqlSearch = async (data) => {
     console.log("Generating query string...");
-    const reqStr = generateString(data);
+    const rawQueryString = generateRawString(data);
+    const countStr = wrapCountString(rawQueryString);
+    const reqStr = wrapQueryString(rawQueryString, data.filesLimit);
 
-    if (reqStr === "REJECTED") {
+    if (rawQueryString === "REJECTED") {
         console.log("Invalid input data. Rejecting...");
         return { status: 3 };
     }
@@ -89,10 +99,28 @@ const psqlSearch = async (data) => {
         const query = doneQuerys.get(reqStr);
         query.timeout.refresh();
         console.log(`Same request already exists. Refreshing id (${query.id})`);
-        return { status: 0, id: query.id };
+        return { status: 0, id: query.id, count: query.count };
     }
     console.log("It's not. Requesting values from db as:");
     console.log(reqStr);
+
+    console.log("Creating psql count pool");
+    let count = 0;
+    const countPool = new Pool(config.pool);
+    try {
+        const res = await countPool.query(countStr);
+        countPool.end();
+        count = (res.rowCount > 0 ? res.rows[0].count : 0);
+        console.log(count);
+        if (count === 0) {
+            console.log("Count query was successful but no files were found");
+            return { status: 2 };
+        }
+    }
+    catch(err) {
+        console.log();
+        return { status: 1, err };
+    }
 
     console.log("Creating psql pool");
     const psql = new Pool(config.pool);
@@ -102,7 +130,7 @@ const psqlSearch = async (data) => {
         psql.end();
 
         if (res.rowCount > 0) {
-            console.log(`Success, got ${res.rowCount} results`);
+            console.log(`Success, got ${count} results but saving only ${res.rowCount}`);
 
             let id = randstr.generate(12);
             while (filesMap.has(id))
@@ -117,9 +145,9 @@ const psqlSearch = async (data) => {
             }, queryClearTimeout);
 
             filesMap.set(id, { errors: new Set(), files: res.rows.map(el => el.ref) });
-            doneQuerys.set(reqStr, { timeout, id });
+            doneQuerys.set(reqStr, { timeout, id, count });
 
-            return { status: 0, id };
+            return { status: 0, id, count };
         }
         else {
             console.log("Query was successful but no files were found");

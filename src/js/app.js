@@ -216,40 +216,34 @@ class Form1223 extends LitElement {
     }
 
     showGotCount(e) {
-        this.showMessage(`Файлов найдено: ${e.detail}`);
+        this.showReminder('message', `Файлов найдено: ${e.detail}`);
     }
 
     reqError(e) {
         if (e.detail)
-            this.showError(`Ошибка сервера: ${e.detail}`);
+            this.showReminder('error', `Ошибка сервера: ${e.detail}`);
         else
-            this.showError("Ошибка сервера");
+            this.showReminder('error', "Ошибка сервера");
     }
 
     notFound() {
-        this.showError("По запросу не было найдено записей");
+        this.showReminder('error', "По запросу не было найдено записей");
     }
 
-    showMessage(text) {
+    showReminder(type, text) {
         clearTimeout(this.reminderTO);
-        this.reminderText = text;
-        this.reminderEl.hidden = false;
-        this.reminderEl.classList.add('message');
-        this.reminderTO = setTimeout(() => {
-            this.reminderEl.classList.remove('message');
-            this.reminderEl.hidden = true;
-        }, 4000);
-    }
 
-    showError(text) {
-        clearTimeout(this.reminderTO);
-        this.reminderText = text;
+        if (this.lastRemType != type)
+            this.reminderEl.classList.remove(type);
+        this.reminderEl.classList.add(type);
         this.reminderEl.hidden = false;
-        this.reminderEl.classList.add('error');
+        this.reminderText = text;
+
         this.reminderTO = setTimeout(() => {
-            this.reminderEl.classList.remove('error');
+            this.reminderEl.classList.remove(type);
             this.reminderEl.hidden = true;
         }, 4000);
+        this.lastRemType = type;
     }
 
     trySend() {

@@ -119,8 +119,7 @@ app.post('/get', async (req, res) => {
     res.setHeader('Content-Type', 'application/json');
     switch (search.status) {
         case 0:
-            const id = search.id;
-            res.send(JSON.stringify({ id, count: getFileList(id).length })); break;
+            res.send(JSON.stringify({ id: search.id, count: search.count })); break;
         case 1:
             console.log(`Error in search: ${search.err}`);
             res.status(500).end(); break;
