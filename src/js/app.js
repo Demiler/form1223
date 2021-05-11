@@ -69,7 +69,7 @@ class Form1223 extends LitElement {
 
             .adc {
                 --input-width: 70px;
-                --title-width: 190px;
+                --title-width: 225px;
             }
 
             #reminder {
@@ -140,7 +140,7 @@ class Form1223 extends LitElement {
             </div>
 
             <div class='coords' id="geocrd">
-                <div class='title'>Координаты Географической Регистрации</div>
+                <div class='title'>Географические координаты</div>
                 <fromto-input class="latitude" @update=${this.updateRange}
                     name="latgeo" .value=${this.latgeo}>Широта:</fromto-input>
                 <fromto-input class="longitude" @update=${this.updateRange}
@@ -150,7 +150,7 @@ class Form1223 extends LitElement {
             </div>
 
             <div class='coords' id="magcrd">
-                <div class='title'>Координаты Геомагнитного События</div>
+                <div class='title'>Геомагнитные координаты</div>
                 <fromto-input class="latitude" @update=${this.updateRange}
                     name="latdm" .value=${this.latdm}>Широта:</fromto-input>
                 <fromto-input class="longitude" @update=${this.updateRange}
@@ -174,7 +174,7 @@ class Form1223 extends LitElement {
 
                 <fromto-input class="adc" @update=${this.updateRange} .order=${true}
                 name="max_adc" .min=${0} .max=${1024} .value=${this.max_adc}
-                >Аналогово-цифровой Преобразователь:</fromto-input>
+                >Максимальный код АЦП:</fromto-input>
 
             </div>
 
@@ -195,7 +195,7 @@ class Form1223 extends LitElement {
                 @request=${this.trySend}
                 @notfound=${this.notFound}
                 @error=${this.reqError}
-                >Отправить</download-button>
+                >Получить</download-button>
             </div>
 
             <div id="reminder">
@@ -236,6 +236,7 @@ class Form1223 extends LitElement {
             hv2: this.hv2,
             filesLimit: this.filesLimit,
         });
+        localStorage.setItem('filesLimit', this.filesLimit);
         this.downloadEl.download(data);
     }
 

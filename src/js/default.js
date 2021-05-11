@@ -17,6 +17,11 @@ class DefaultValues {
     }
 
     init(callback) {
+        if (localStorage.getItem('clear') === null) {
+            localStorage.clear();
+            localStorage.setItem('clear', '');
+        }
+
         if (localStorage.getItem('dt') !== null) {
             this.dt      = JSON.parse(localStorage.getItem('dt'));
             this.latgeo  = JSON.parse(localStorage.getItem('latgeo'));
@@ -28,6 +33,9 @@ class DefaultValues {
             this.l       = JSON.parse(localStorage.getItem('l'));
             this.b       = JSON.parse(localStorage.getItem('b'));
             this.max_adc = JSON.parse(localStorage.getItem('max_adc'));
+            if (localStorage.getItem('filesLimit') !== null) {
+                this.filesLimit = JSON.parse(localStorage.getItem('filesLimit'));
+            }
         }
         else
             this.fetchVals(callback);
@@ -56,6 +64,10 @@ class DefaultValues {
             if (res.status === 200) {
                 const data = await res.json();
                 for (const name in data) {
+                    if (data[name].from !== undefined && data[name].to !== undefined) {
+                        data[name].from = Math.round(data[name].from);
+                        data[name].to = Math.round(data[name].to);
+                    }
                     localStorage.setItem(name, JSON.stringify(data[name]));
                     this[name] = data[name];
                 }

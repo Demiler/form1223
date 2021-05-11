@@ -45,13 +45,14 @@ app.use(bodyParser.json());
 app.use(express.static(path.resolve(__dirname, 'public/')));
 
 app.get('/', (req, res) => {
+    console.log(`[${new Date().toLocaleString().replace(',','')}] GET /`);
     res.sendFile(path.resolve(__dirname, 'public/', 'index.html'));
 });
 
 app.get('/download', async (req, res) => {
     const id = req.query.id;
     const token = req.query.token;
-    console.log(`GET download request with an id - ${id} and token - ${token}`);
+    console.log(`[${new Date().toLocaleString().replace(',','')}] GET download request with an id - ${id} and token - ${token}`);
 
     if (token === '' || token === undefined) {
         console.log("Error: Invalid token");
@@ -111,7 +112,7 @@ app.get('/download', async (req, res) => {
 });
 
 app.post('/get', async (req, res) => {
-    console.log('POST get');
+    console.log(`[${new Date().toLocaleString().replace(',','')}] POST /get`);
     const search = await psqlSearch(req.body);
     console.log();
 
@@ -133,12 +134,12 @@ app.post('/get', async (req, res) => {
 });
 
 app.get('/default', async (req, res) => {
-    console.log('GET default');
+    console.log(`[${new Date().toLocaleString().replace(',','')}] GET /default`);
     res.send(await defaultVals.send());
 });
 
 app.get('/errors', async (req, res) => {
-    console.log('GET errors request with a token:', req.query.token);
+    console.log(`[${new Date().toLocaleString().replace(',','')}] GET errors request with a token: ${req.query.token}`);
 
     errors.onComplition(req.query.token, (errList) => {
         if (errList === undefined) {
