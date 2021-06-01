@@ -99,13 +99,13 @@ class DownloadButton extends LitElement {
 
     render() {
         return html`
-            <button id="send-data" @click=${this.sendRequest}>Получить</button>
+            <button id="ask-data" @click=${this.sendAsk}>Узнать количество</button>
             <div id="file-limit">
                 <span class='label'>Файлов:</span>
                 <input type="number" value=${this.filesLimit}
                 @change=${this.changeLimit}>
             </div>
-            <button id="ask-data" @click=${this.sendAsk}>Узнать количество</button>
+            <button id="send-data" @click=${this.sendRequest}>Получить</button>
             <div id="file-start">
                 <span class='label'>Начиная с:</span>
                 <input type="number" value=${this.filesStart}
@@ -172,7 +172,7 @@ class DownloadButton extends LitElement {
                     this.sendNotFound(); break;
                 case 200:
                     res.json().then(data => {
-                        this.notifyCount(data.count);
+                        //this.notifyCount(data.count);
                         this.downloadData(data.id);
                     }); break;
                 default:
