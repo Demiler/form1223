@@ -61,6 +61,11 @@ class DefaultValues {
         .then(async res => {
             if (res.status === 200) {
                 const data = await res.json();
+
+                this.dt = JSON.parse(data.dt);
+                localStorage.setItem('dt', data.dt);
+                delete data.dt;
+
                 for (const name in data) {
                     if (data[name].from !== undefined && data[name].to !== undefined) {
                         data[name].from = Math.round(data[name].from);

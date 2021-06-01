@@ -55,7 +55,7 @@ class MinMax {
         if (this.initReq) await this.init();
 
         return JSON.stringify({
-            dt: this.dt,
+            dt: JSON.stringify(this.dt),
             latgeo: this.data.latgeo,
             longeo: this.data.longeo,
             altgeo: this.data.altgeo,

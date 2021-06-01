@@ -156,6 +156,7 @@ app.post('/get', async (req, res) => {
 
 app.get('/default', async (req, res) => {
     console.log(`[${new Date().toLocaleString().replace(',','')}] GET /default`);
+    res.setHeader('Content-Type', 'application/json');
     res.send(await defaultVals.send());
 });
 
