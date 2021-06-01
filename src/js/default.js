@@ -17,14 +17,17 @@ class DefaultValues {
     }
 
     init(callback) {
+        if (localStorage.getItem('clear') !== null)
+            localStorage.clear();
+
         if (localStorage.getItem('dt') !== null) {
             this.dt      = JSON.parse(localStorage.getItem('dt'));
             this.latgeo  = JSON.parse(localStorage.getItem('latgeo'));
             this.longeo  = JSON.parse(localStorage.getItem('longeo'));
-            this.altgeo  = JSON.parse(localStorage.getItem('altgeo'));
+            //this.altgeo  = JSON.parse(localStorage.getItem('altgeo'));
             this.latdm   = JSON.parse(localStorage.getItem('latdm'));
             this.londm   = JSON.parse(localStorage.getItem('londm'));
-            this.r       = JSON.parse(localStorage.getItem('r'));
+            //this.r       = JSON.parse(localStorage.getItem('r'));
             this.l       = JSON.parse(localStorage.getItem('l'));
             this.b       = JSON.parse(localStorage.getItem('b'));
             this.max_adc = JSON.parse(localStorage.getItem('max_adc'));
@@ -40,10 +43,10 @@ class DefaultValues {
         obj.dt      = this.dt;
         obj.latgeo  = this.latgeo;
         obj.longeo  = this.longeo;
-        obj.altgeo  = this.altgeo;
+        //obj.altgeo  = this.altgeo;
         obj.latdm   = this.latdm;
         obj.londm   = this.londm;
-        obj.r       = this.r;
+        //obj.r       = this.r;
         obj.l       = this.l;
         obj.b       = this.b;
         obj.max_adc = this.max_adc;
@@ -60,8 +63,9 @@ class DefaultValues {
                 const data = await res.json();
                 for (const name in data) {
                     if (data[name].from !== undefined && data[name].to !== undefined) {
-                        data[name].from = Math.round(data[name].from);
-                        data[name].to = Math.round(data[name].to);
+                        if (data[name].from < 0)
+                        data[name].from = utils.floorAbs(data[name].from);
+                        data[name].to = utils.floorAbs(data[name].to);
                     }
                     localStorage.setItem(name, JSON.stringify(data[name]));
                     this[name] = data[name];

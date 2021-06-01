@@ -230,7 +230,7 @@ class Form1223 extends LitElement {
         clearTimeout(this.reminderTO);
 
         if (this.lastRemType != type)
-            this.reminderEl.classList.remove(this.lastRemType);
+            this.reminderEl.classList.remove(type);
         this.reminderEl.classList.add(type);
         this.reminderEl.hidden = false;
         this.reminderText = text;
@@ -246,8 +246,8 @@ class Form1223 extends LitElement {
         const data = JSON.stringify({
             dt: this.dt,
             ranges: {
-                latgeo: this.latgeo, longeo: this.longeo, altgeo: this.altgeo,
-                latdm:  this.latdm,  londm:  this.londm,  r:      this.r,
+                latgeo: this.latgeo, longeo: this.longeo, //altgeo: this.altgeo,
+                latdm:  this.latdm,  londm:  this.londm,  //r:      this.r,
                 l:      this.l,      b:      this.b,
                 max_adc: this.max_adc,
             },
