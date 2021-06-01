@@ -40,29 +40,38 @@ class RegDate extends LitElement {
 
     constructor() {
         super();
-        this.from = { date: null, time: null };
-        this.to = { date: null, time: null };
+        this.from = { date: "2000-01-01", time: "00:00:00" };
+        this.to = { date: "2021-01-01", time: "00:00:00" };
     }
 
-    firstUpdated() {
-        this.from.date = this.shadowRoot.querySelector("#from .date").getData().value;
-        this.from.time = this.shadowRoot.querySelector("#from .time").getData().value;
-        this.to.date   = this.shadowRoot.querySelector("#to .date").getData().value;
-        this.to.time   = this.shadowRoot.querySelector("#to .time").getData().value;
+
+    setupAttributes() {
+        if (this.setupAttrCalled) return;
+        this.setupAttrCalled = true;
+
+        [ "date-from", "date-to", "time-from", "time-to" ]
+            .forEach(attr => {
+                let [ what, from ] = attr.split('-');
+                if (this.hasAttribute(attr))
+                    this[from][what] = this.getAttribute(attr);
+            });
+        this.requestUpdate();
     }
 
     render() {
+        this.setupAttributes();
+
         return html`
             <div class='value' id="from">
                 <span class='label'>От</span>
 
                 <date-picker name="from" class='date'
-                value="2016-05-19"
+                value=${this.from.date}
                 @date-update=${this.updateDate}
                 ></date-picker>
 
                 <time-picker name="from" class='time'
-                value="07:31:10"
+                value=${this.from.time}
                 @time-update=${this.updateTime}
                 ></time-picker>
             </div>
@@ -71,12 +80,12 @@ class RegDate extends LitElement {
                 <span class='label'>До</span>
 
                 <date-picker name="to" class='date'
-                value="2017-11-30"
+                value=${this.to.date}
                 @date-update=${this.updateDate}
                 ></date-picker>
 
                 <time-picker name="to" class='time'
-                value="20:22:37"
+                value=${this.to.time}
                 @time-update=${this.updateTime}
                 ></time-picker>
             </div>

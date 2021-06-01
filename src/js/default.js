@@ -1,8 +1,8 @@
 class DefaultValues {
     constructor() {
         this.dt     =
-            { from: { date: null, time: null },
-                to: { date: null, time: null }};
+            { from: { date: "2016-05-19", time: "07:31:10" },
+                to: { date: "2017-11-30", time: "20:22:37" }};
         this.latgeo = { from: null, to: null };
         this.longeo = { from: null, to: null };
         this.altgeo = { from: null, to: null };
@@ -21,7 +21,7 @@ class DefaultValues {
             localStorage.clear();
 
         if (localStorage.getItem('dt') !== null) {
-            this.dt      = JSON.parse(localStorage.getItem('dt'));
+            //this.dt      = JSON.parse(localStorage.getItem('dt'));
             this.latgeo  = JSON.parse(localStorage.getItem('latgeo'));
             this.longeo  = JSON.parse(localStorage.getItem('longeo'));
             //this.altgeo  = JSON.parse(localStorage.getItem('altgeo'));

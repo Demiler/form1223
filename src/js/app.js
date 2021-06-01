@@ -145,7 +145,13 @@ class Form1223 extends LitElement {
         return html`
             <div id="reg-data">
                 <div class='title'>Дата Регистрации</div>
-                <reg-date value=${this.dt} @reg-update=${this.updateDateRange}></reg-date>
+                <reg-date
+                    date-from=${this.dt.from.date}
+                    time-from=${this.dt.from.time}
+                    date-to=${this.dt.to.date}
+                    time-to=${this.dt.to.time}
+                    @reg-update=${this.updateDateRange}
+                ></reg-date>
             </div>
 
             <div class='coords' id="geocrd">
