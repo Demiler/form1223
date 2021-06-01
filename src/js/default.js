@@ -13,15 +13,10 @@ class DefaultValues {
         this.b =      { from: null, to: null };
         this.max_adc ={ from: null, to: null };
         this.mode = "eas";
-        this.filesLimit = 10;
+        this.filesData = { limit: 1000, start: 0 };
     }
 
     init(callback) {
-        if (localStorage.getItem('clear') === null) {
-            localStorage.clear();
-            localStorage.setItem('clear', '');
-        }
-
         if (localStorage.getItem('dt') !== null) {
             this.dt      = JSON.parse(localStorage.getItem('dt'));
             this.latgeo  = JSON.parse(localStorage.getItem('latgeo'));
@@ -33,8 +28,8 @@ class DefaultValues {
             this.l       = JSON.parse(localStorage.getItem('l'));
             this.b       = JSON.parse(localStorage.getItem('b'));
             this.max_adc = JSON.parse(localStorage.getItem('max_adc'));
-            if (localStorage.getItem('filesLimit') !== null) {
-                this.filesLimit = JSON.parse(localStorage.getItem('filesLimit'));
+            if (localStorage.getItem('filesData') !== null) {
+                this.filesData = JSON.parse(localStorage.getItem('filesData'));
             }
         }
         else
@@ -53,7 +48,7 @@ class DefaultValues {
         obj.b       = this.b;
         obj.max_adc = this.max_adc;
         obj.mode    = this.mode;
-        obj.filesLimit = this.filesLimit;
+        obj.filesData = this.filesData;
     }
 
     fetchVals(callback) {

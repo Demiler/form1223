@@ -6,8 +6,12 @@ class DownloadButton extends LitElement {
         return css`
             :host {
                 position: relative;
-                display: block;
+                display: grid;
                 border-radius: inherit;
+
+                grid-template-columns: 200px 150px;
+                gap: 10px;
+                align-items: center;
             }
 
             :host(.waiting)::before {
@@ -22,12 +26,12 @@ class DownloadButton extends LitElement {
             }
 
             button {
-                margin-bottom: 10px;
                 border: none;
                 background-color: #d1d1d1;
                 font: inherit;
                 padding: 5px 15px;
                 width: 100%;
+                height: 30px;
                 border-radius: 5px;
                 transition: .2s;
             }
@@ -39,17 +43,23 @@ class DownloadButton extends LitElement {
 
             button:active {
                 background-color: #cfe6ff;
-                transform: scale(1.2);
+                filter: saturate(1.2);
             }
 
-            #file-limit {
+            #file-start, #file-limit {
                 border-bottom: 1px solid black;
                 font-size: 10pt;
                 width: 100%;
                 display: flex;
+                height: fit-content;
             }
 
-            #file-limit input {
+            .label {
+                width: 100%;
+                white-space: nowrap;
+            }
+
+            input {
                 outline: none;
                 border: none;
                 width: 100%;
@@ -59,8 +69,8 @@ class DownloadButton extends LitElement {
                 -moz-appearance: textfield;
             }
 
-            #file-limit input::-webkit-outer-spin-button,
-            #file-limit input::-webkit-inner-spin-button {
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
                 -webkit-appearance: none;
             }
 
@@ -73,27 +83,33 @@ class DownloadButton extends LitElement {
     static get properties() {
         return {
             filesLimit: { type: Number },
+            filesStart: { type: Number },
         }
     }
 
     constructor() {
         super();
-        this.filesLimit = 10;
+        this.filesStart = 0;
+        this.filesLimit = 1000;
     }
 
     firstUpdated() {
-        if (this.hasAttribute("value"))
-            this.filesLimit = Number(this.getAttribute("value"));
         this.linkEl = this.shadowRoot.querySelector("#download");
     }
 
     render() {
         return html`
-            <button id="send-data" @click=${this.sendRequest}><slot></slot></button>
+            <button id="send-data" @click=${this.sendRequest}>Получить</button>
             <div id="file-limit">
                 <span class='label'>Файлов:</span>
                 <input type="number" value=${this.filesLimit}
                 @change=${this.changeLimit}>
+            </div>
+            <button id="ask-data" @click=${this.sendAsk}>Узнать количество</button>
+            <div id="file-start">
+                <span class='label'>Начиная с:</span>
+                <input type="number" value=${this.filesStart}
+                @change=${this.changeStart}>
             </div>
             <a id="download" download></a>
         `;
@@ -105,6 +121,35 @@ class DownloadButton extends LitElement {
 
     unwait() {
         this.classList.remove("waiting");
+    }
+
+    askCount(body) {
+        console.log('sending ask request');
+        fetch(`${window.location.href}ask`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+            },
+            body
+        })
+        .then(res => {
+            switch (res.status) {
+                case 404:
+                    this.sendNotFound(); break;
+                case 200:
+                    res.json().then(count => {
+                        this.notifyCount(Number(count));
+                    }); break;
+                default:
+                    this.sendError()
+            }
+        })
+        .catch(err => {
+            console.log('some error', err);
+            this.unwait();
+            this.sendError("Неудалось послать запрос.");
+        });
     }
 
     download(body) {
@@ -165,11 +210,29 @@ class DownloadButton extends LitElement {
         }));
     }
 
-    sendRequest(e) {
+    sendAsk(e) {
         let event = new CustomEvent('request', {
+            detail: 'count',
             bubbles: true,
             composed: true });
         this.dispatchEvent(event);
+    }
+
+    sendRequest(e) {
+        let event = new CustomEvent('request', {
+            detail: 'download',
+            bubbles: true,
+            composed: true });
+        this.dispatchEvent(event);
+    }
+
+    changeStart(e) {
+        this.filesStart = Number(e.target.value);
+        if (this.filesStart < 0) {
+            this.filesLimit = 0;
+            e.target.value = 0;
+        }
+        this.sendChange();
     }
 
     changeLimit(e) {
@@ -215,7 +278,8 @@ class DownloadButton extends LitElement {
 
     getData() {
         return {
-            value: this.filesLimit
+            limit: this.filesLimit,
+            start: this.filesStart
         }
     }
 };
