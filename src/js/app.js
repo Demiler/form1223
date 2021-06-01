@@ -90,11 +90,6 @@ class Form1223 extends LitElement {
                 border-radius: 8px;
             }
 
-            #reminder-text[hidden] {
-                display: block;
-                top: -100px;
-            }
-
             #reminder-text.message {
                 top: 0;
                 background-color: #cfe6ff;
@@ -103,6 +98,11 @@ class Form1223 extends LitElement {
             #reminder-text.error {
                 top: 0;
                 background-color: #faaeb8;
+            }
+
+            #reminder-text[hidden] {
+                display: block;
+                top: -100px;
             }
 
             #result {
@@ -230,7 +230,7 @@ class Form1223 extends LitElement {
         clearTimeout(this.reminderTO);
 
         if (this.lastRemType != type)
-            this.reminderEl.classList.remove(type);
+            this.reminderEl.classList.remove(this.lastRemType);
         this.reminderEl.classList.add(type);
         this.reminderEl.hidden = false;
         this.reminderText = text;
