@@ -106,7 +106,6 @@ class Form1223 extends LitElement {
             }
 
             #result {
-                width: 130px;
                 grid-column: 2;
                 justify-self: flex-end;
                 position: relative;
@@ -155,8 +154,6 @@ class Form1223 extends LitElement {
                     name="latgeo" .value=${this.latgeo}>Широта:</fromto-input>
                 <fromto-input class="longitude" @update=${this.updateRange}
                     name="longeo" .value=${this.longeo}>Долгота:</fromto-input>
-                <fromto-input class="altitude" @update=${this.updateRange} .order=${true}
-                    name="altgeo" .value=${this.altgeo}>Высота:</fromto-input>
             </div>
 
             <div class='coords' id="magcrd">
@@ -165,12 +162,10 @@ class Form1223 extends LitElement {
                     name="latdm" .value=${this.latdm}>Широта:</fromto-input>
                 <fromto-input class="longitude" @update=${this.updateRange}
                     name="londm" .value=${this.londm}>Долгота:</fromto-input>
-                <fromto-input class="altitude" @update=${this.updateRange} .order=${true}
-                    name="r" .value=${this.r}>R:</fromto-input>
             </div>
 
             <div id="LBcrd">
-                <div class='title'>Геодезические Координаты</div>
+                <div class='title'>Координаты МакИлвайна</div>
 
                 <fromto-input class="lcrd" @update=${this.updateRange} .order=${true}
                     name="l" .value=${this.l}>L-коорд:</fromto-input>
@@ -200,13 +195,14 @@ class Form1223 extends LitElement {
 
             <div id="result">
                 <download-button
-                value=${this.filesLimit}
-                @change=${(e) => this.filesLimit = e.detail.value}
+                .filesLimit=${this.filesData.limit}
+                .filesStart=${this.filesData.start}
+                @change=${(e) => this.filesData = e.detail}
                 @request=${this.trySend}
                 @notfound=${this.notFound}
                 @error=${this.reqError}
                 @got-count=${this.showGotCount}
-                >Получить</download-button>
+                ></download-button>
             </div>
 
             <div id="reminder">
@@ -246,7 +242,7 @@ class Form1223 extends LitElement {
         this.lastRemType = type;
     }
 
-    trySend() {
+    trySend(e) {
         const data = JSON.stringify({
             dt: this.dt,
             ranges: {
@@ -258,10 +254,15 @@ class Form1223 extends LitElement {
             conditions: this.conditions,
             mode: this.mode,
             hv2: this.hv2,
-            filesLimit: this.filesLimit,
+            filesLimit: this.filesData.limit,
+            filesStart: this.filesData.start,
         });
-        localStorage.setItem('filesLimit', this.filesLimit);
-        this.downloadEl.download(data);
+        localStorage.setItem('filesData', JSON.stringify(this.filesData));
+
+        if (e.detail === 'download')
+            this.downloadEl.download(data);
+        else
+            this.downloadEl.askCount(data);
     }
 
     updateIntens(e) {
