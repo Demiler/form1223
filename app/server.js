@@ -111,6 +111,27 @@ app.get('/download', async (req, res) => {
     }
 });
 
+app.post('/ask', async (req, res) => {
+    console.log(`[${new Date().toLocaleString().replace(',','')}] POST /ask`);
+    const search = await psqlSearch(req.body, true);
+
+    res.setHeader('Content-Type', 'application/json');
+    switch (search.status) {
+        case 0:
+            res.send(JSON.stringify(search.count)); break;
+        case 1:
+            console.log(`Error in search: ${search.err}`);
+            res.status(500).end(); break;
+        case 2:
+            res.status(404).end(); break;
+        case 3: //invalid data rejection
+            res.status(400).end(); break;
+        default:
+            console.log("Unkown status from psqlSearch: ", search.status);
+            res.status(500).end(); break;
+    }
+});
+
 app.post('/get', async (req, res) => {
     console.log(`[${new Date().toLocaleString().replace(',','')}] POST /get`);
     const search = await psqlSearch(req.body);

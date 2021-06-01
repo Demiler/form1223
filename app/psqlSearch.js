@@ -73,9 +73,9 @@ const generateRawString = (data) => {
     }
 }
 
-const wrapQueryString = (str, filesLimit) => {
+const wrapQueryString = (str, data) => {
     const head = `SELECT ref FROM ${databaseName} WHERE `;
-    const tail = ` ORDER BY dt LIMIT ${filesLimit};`;
+    const tail = ` ORDER BY dt LIMIT ${data.filesLimit} OFFSET ${data.filesStart};`;
     return head + str + tail;
 }
 
@@ -83,11 +83,11 @@ const wrapCountString = (str) => {
     return `SELECT COUNT(ref) FROM ${databaseName} WHERE ` + str;
 }
 
-const psqlSearch = async (data) => {
+const psqlSearch = async (data, countOnly = false) => {
     console.log("Generating query string...");
     const rawQueryString = generateRawString(data);
     const countStr = wrapCountString(rawQueryString);
-    const reqStr = wrapQueryString(rawQueryString, data.filesLimit);
+    const reqStr = wrapQueryString(rawQueryString, data);
 
     if (rawQueryString === "REJECTED") {
         console.log("Invalid input data. Rejecting...");
@@ -111,7 +111,6 @@ const psqlSearch = async (data) => {
         const res = await countPool.query(countStr);
         countPool.end();
         count = (res.rowCount > 0 ? res.rows[0].count : 0);
-        console.log(count);
         if (count === 0) {
             console.log("Count query was successful but no files were found");
             return { status: 2 };
@@ -120,6 +119,11 @@ const psqlSearch = async (data) => {
     catch(err) {
         console.log();
         return { status: 1, err };
+    }
+
+    if (countOnly) {
+        console.log("Stopping, only the count was asked");
+        return { status: 0, id: 'count', count: count };
     }
 
     console.log("Creating psql pool");
