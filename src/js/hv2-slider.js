@@ -182,7 +182,8 @@ class HV2Slider extends LitElement {
 
     recalculate(step, ticksCount, initialStep) {
         this.ticks = [];
-        this.ticks.push(this.MIN);
+        //this.ticks.push(this.MIN);
+        this.ticks.push('HVdac');
         for (let i = 1; i < ticksCount - 1; i++) {
             let code = Math.trunc(i * step + this.MIN + initialStep);
             this.ticks.push(code);
@@ -232,6 +233,8 @@ class HV2Slider extends LitElement {
     }
 
     codeToIntensity(code) {
+        if (code === 'HVdac') return 'luv';
+
         const intensity = 3 * Math.pow(10, 7) * Math.pow((255 / code), 6);
         return Number.parseFloat(intensity).toExponential(2);
     }

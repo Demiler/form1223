@@ -5,6 +5,7 @@ class OpMode extends LitElement {
         return css`
             :host {
                 display: flex;
+                padding: 5px;
             }
 
             .btn {
