@@ -63,9 +63,8 @@ class DefaultValues {
                 const data = await res.json();
                 for (const name in data) {
                     if (data[name].from !== undefined && data[name].to !== undefined) {
-                        if (data[name].from < 0)
-                        data[name].from = utils.floorAbs(data[name].from);
-                        data[name].to = utils.floorAbs(data[name].to);
+                        data[name].from = Math.round(data[name].from);
+                        data[name].to = Math.round(data[name].to);
                     }
                     localStorage.setItem(name, JSON.stringify(data[name]));
                     this[name] = data[name];

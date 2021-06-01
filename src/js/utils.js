@@ -62,11 +62,6 @@ export const isObjectFilled = (obj) => {
     return undefined;
 }
 
-export const floorAbs = (num) => {
-    return num < 0 ? Math.floor(num) : Math.ceil(num);
-}
-
-
 Math.clamp = (min, max, val) => {
     return Math.min(max, Math.max(min, val));
 }

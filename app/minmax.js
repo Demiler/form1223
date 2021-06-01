@@ -11,10 +11,10 @@ class MinMax {
         this.data = new Object();
         this.data.latgeo = { from: null, to: null };
         this.data.longeo = { from: null, to: null };
-        this.data.altgeo = { from: null, to: null };
+        //this.data.altgeo = { from: null, to: null };
         this.data.latdm =  { from: null, to: null };
         this.data.londm =  { from: null, to: null };
-        this.data.r =      { from: null, to: null };
+        //this.data.r =      { from: null, to: null };
         this.data.l =      { from: null, to: null };
         this.data.b =      { from: null, to: null };
         this.data.max_adc ={ from: null, to: null };
