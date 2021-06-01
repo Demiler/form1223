@@ -228,8 +228,8 @@ class DownloadButton extends LitElement {
 
     changeStart(e) {
         this.filesStart = Number(e.target.value);
-        if (this.filesStart < 0) {
-            this.filesLimit = 0;
+        if (this.filesStart <= 0) { //== cuz target could be blank
+            this.filesStart = 0;
             e.target.value = 0;
         }
         this.sendChange();
