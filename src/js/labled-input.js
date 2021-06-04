@@ -34,6 +34,17 @@ class LabledInput extends LitElement {
                 transition: .2s;
             }
 
+            /* Chrome, Safari, Edge, Opera */
+            input::-webkit-outer-spin-button,
+            input::-webkit-inner-spin-button {
+                -webkit-appearance: none;
+                margin: 0;
+            }
+
+            /* Firefox */
+            input[type=number] {
+                -moz-appearance: textfield;
+            }
         `;
     }
 
@@ -65,6 +76,7 @@ class LabledInput extends LitElement {
             <span class='label${this.active ? ' active' : ''}'
             >${this.label}</span>
             <input .value=${this.value}
+                type="number"
                 @blur=${this.blured}
                 @focus=${this.focusev}
                 @input=${this.change}

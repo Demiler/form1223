@@ -1,3 +1,5 @@
+import { VERSION } from './utils';
+
 class DefaultValues {
     constructor() {
         this.dt     =
@@ -17,8 +19,10 @@ class DefaultValues {
     }
 
     init(callback) {
-        if (localStorage.getItem('clear') !== null)
+        if (localStorage.getItem('version') !== VERSION) {
             localStorage.clear();
+            localStorage.setItem('version', VERSION);
+        }
 
         if (localStorage.getItem('dt') !== null) {
             //this.dt      = JSON.parse(localStorage.getItem('dt'));
@@ -64,8 +68,8 @@ class DefaultValues {
 
                 for (const name of Object.keys(data)) {
                     if (name !== "dt" && data[name].from !== undefined && data[name].to !== undefined) {
-                        data[name].from = Math.round(data[name].from);
-                        data[name].to = Math.round(data[name].to);
+                        data[name].from = Math.floor(data[name].from);
+                        data[name].to = Math.ceil(data[name].to);
                     }
                     localStorage.setItem(name, JSON.stringify(data[name]));
                     this[name] = data[name];
