@@ -36,7 +36,11 @@ if (DATAPATH === undefined) {
 }
 ////////////////////////////////////////////////////////////
 
-const databaseName = (config.schema === '') ? "tus" : `${config.schema}.tus`;
+const databaseName = (() => {
+    if (config.schema === '')
+        return config.pool.database;
+    return `${config.schema}.${config.pool.database}`;
+})();
 const defaultVals = new MinMax(databaseName);
 
 const app = express();

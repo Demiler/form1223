@@ -93,16 +93,14 @@ class FromToInput extends LitElement {
             <labled-input id="from" class='value' label="От"
             .value=${this.value.from}
             @focus=${this.activate}
-            @change=${this.change}
-            @input=${this.change}
+            @update=${this.change}
             @keyup=${this.onKeyUp}
             ></labled-input>
 
             <labled-input id="to" class='value' label="До"
             .value=${this.value.to}
             @focus=${this.activate}
-            @input=${this.change}
-            @change=${this.change}
+            @update=${this.change}
             @keyup=${this.onKeyUp}
             ></labled-input>
         `;

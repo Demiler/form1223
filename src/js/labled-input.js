@@ -76,7 +76,7 @@ class LabledInput extends LitElement {
             <span class='label${this.active ? ' active' : ''}'
             >${this.label}</span>
             <input .value=${this.value}
-                type="number"
+                type="number" lang="en"
                 @blur=${this.blured}
                 @focus=${this.focusev}
                 @input=${this.change}
@@ -110,9 +110,13 @@ class LabledInput extends LitElement {
     }
 
     change(e) {
-        utils.redispatchEvent(e);
         this.value = e.target.value;
         this.active = this.focused || !utils.isBlank(this.value) || this.value === 0;
+        this.dispatchEvent(new CustomEvent('update', {
+            detail: this.value,
+            bubbles: true,
+            composed: true
+        }));
     }
 
 }
