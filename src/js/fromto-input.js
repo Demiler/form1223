@@ -133,6 +133,7 @@ class FromToInput extends LitElement {
     }
 
     change(e) {
+        e.stopPropagation();
         if (utils.isBlank(e.target.value)) {
             this.value[e.target.id] = null;
             return;
