@@ -25,78 +25,112 @@ if (config) {//check if connection to db is ok
 
 const generateRawString = (data) => {
     try {
-        const filesLimit = data.filesLimit;
+        const queryFilters = []
+        const queryArgs = []
+        let argInd = 1;
 
         const dateFrom = `${data.dt.from.date} ${data.dt.from.time}`
         const dateTo = `${data.dt.to.date} ${data.dt.to.time}`
-        let dateString = `dt='${dateFrom}'`;
+        if (dateFrom !== dateTo) {
+            queryFilters.push('dt BETWEEN SYMMETRIC $1 AND $2')
+            queryArgs.push(dateFrom, dateTo)
+            argInd = 3;
+        }
+        else {
+            queryFilters.push('dt=$1');
+            queryArgs.push(dateFrom);
+            argInd = 2;
+        }
 
-        if (dateFrom !== dateTo)
-            dateString = `dt BETWEEN SYMMETRIC '${dateFrom}' AND '${dateTo}'`
-
-        const opMode = `mode='${data.mode}'`
+        queryFilters.push(`mode=$${argInd++}`)
+        queryArgs.push(data.mode)
 
         let conditions = data.conditions;
         if (conditions.condition === "night") {
+            let value = '';
             switch (conditions.value) {
-                case "min":  conditions="min_hv"; break;
-                case "mean": conditions="avg_hv"; break;
-                case "max":  conditions="max_hv"; break;
+                case "min":  value = "min_hv"; break;
+                case "mean": value = "avg_hv"; break;
+                case "max":  value = "max_hv"; break;
+                default: throw 'Unkown conditions value';
             }
-            conditions += ` BETWEEN ${data.hv2.from} AND ${data.hv2.to}`;
-        }
-        else
-            conditions = "avg_hv<=128";
 
-        const cycleVals = new Set([ "latgeo", "longeo", "latdm", "londm" ]);
-        const ranges = [];
-        for (const name in data.ranges) {
+            queryFilters.push(`${value} BETWEEN $${argInd++} AND $${argInd++}`);
+            queryArgs.push(data.hv2.from, data.hv2.to);
+        }
+        else {
+            queryFilters.push('avg_hv<=128');
+        }
+
+        const rangeVariables = { // true means it's cycle var
+            latgeo: true,  longeo: true,  latdm:   true, londm: true,
+            l:      false, b:      false, max_adc: false
+        };
+
+        for (const name in rangeVariables) {
+            if (name in data.ranges === false) continue;
+
             const range = data.ranges[name];
             if (range.from !== null && range.to !== null) {
-                if (range.from < range.to)
-                    ranges.push(`${name} BETWEEN ${range.from} AND ${range.to}`);
-                else if (cycleVals.has(name))
-                    ranges.push(`${name} NOT BETWEEN ${range.to} AND ${range.from}`);
+                if (range.from < range.to) {
+                    queryFilters.push(`${name} BETWEEN $${argInd++} AND $${argInd++}`);
+                    queryArgs.push(range.from, range.to);
+                }
+                else if (rangeVariables[name]) {
+                    queryFilters.push(`${name} NOT BETWEEN $${argInd++} AND $${argInd++}`);
+                    queryArgs.push(range.to, range.from);
+                }
             }
-            else if (range.from !== null)
-                ranges.push(`${name}>=${range.from}`)
-            else if (range.to !== null)
-                ranges.push(`${name}<=${range.to}`)
+            else if (range.from !== null) {
+                queryFilters.push(`${name}>=$${argInd++}`);
+                queryArgs.push(range.from);
+            }
+            else if (range.to !== null) {
+                queryFilters.push(`${name}<=$${argInd++}`);
+                queryArgs.push(range.to);
+            }
         }
 
-        const args = [ dateString, opMode, conditions, ...ranges ];
-
-        return args.join(" AND ")
+        return { filters: queryFilters.join(' AND '), args: queryArgs };
     } catch (err) {
         console.log(`Error on parser: ${err}`);
         return "REJECTED";
     }
 }
 
-const wrapQueryString = (str, data) => {
+const wrapQueryString = (queryStr, data) => {
+    let argInd = queryStr.args.length + 1;
+
     const head = `SELECT ref FROM ${databaseName} WHERE `;
-    const tail = ` ORDER BY dt LIMIT ${data.filesLimit} OFFSET ${data.filesStart};`;
-    return head + str + tail;
+    const tail = ` ORDER BY dt LIMIT $${argInd++} OFFSET $${argInd++};`;
+
+    const queryFilters = head + queryStr.filters + tail;
+    const queryArgs = [...queryStr.args, data.filesLimit, data.filesStart];
+    return { filters: queryFilters, args: queryArgs };
 }
 
-const wrapCountString = (str) => {
-    return `SELECT COUNT(ref) FROM ${databaseName} WHERE ` + str;
+const wrapCountString = (queryStr) => {
+    return {
+        filters: `SELECT COUNT(ref) FROM ${databaseName} WHERE ${queryStr.filters}`,
+        args: queryStr.args
+    };
 }
 
 const psqlSearch = async (data, countOnly = false) => {
     console.log("Generating query string...");
     const rawQueryString = generateRawString(data);
-    const countStr = wrapCountString(rawQueryString);
-    const reqStr = wrapQueryString(rawQueryString, data);
 
     if (rawQueryString === "REJECTED") {
         console.log("Invalid input data. Rejecting...");
         return { status: 3 };
     }
 
+    const countStr = wrapCountString(rawQueryString);
+    const reqStr = wrapQueryString(rawQueryString, data);
+
     console.log("Checking if query exists...");
-    if (doneQuerys.has(reqStr)) {
-        const query = doneQuerys.get(reqStr);
+    if (doneQuerys.has(reqStr.filters)) {
+        const query = doneQuerys.get(reqStr.filters);
         query.timeout.refresh();
         console.log(`Same request already exists. Refreshing id (${query.id})`);
         return { status: 0, id: query.id, count: query.count };
@@ -108,7 +142,7 @@ const psqlSearch = async (data, countOnly = false) => {
     let count = 0;
     const countPool = new Pool(config.pool);
     try {
-        const res = await countPool.query(countStr);
+        const res = await countPool.query(countStr.filters, countStr.args);
         countPool.end();
         count = (res.rowCount > 0 ? res.rows[0].count : 0);
         if (count === 0) {
@@ -130,7 +164,7 @@ const psqlSearch = async (data, countOnly = false) => {
     const psql = new Pool(config.pool);
 
     try {
-        const res = await psql.query(reqStr);
+        const res = await psql.query(reqStr.filters, reqStr.args);
         psql.end();
 
         if (res.rowCount > 0) {
@@ -145,11 +179,11 @@ const psqlSearch = async (data, countOnly = false) => {
             const timeout = setTimeout(() => {
                 console.log(`Deleting long unsued id: ${id}`);
                 filesMap.delete(id);
-                doneQuerys.delete(reqStr);
+                doneQuerys.delete(reqStr.filters);
             }, queryClearTimeout);
 
             filesMap.set(id, { errors: new Set(), files: res.rows.map(el => el.ref) });
-            doneQuerys.set(reqStr, { timeout, id, count });
+            doneQuerys.set(reqStr.filters, { timeout, id, count });
 
             return { status: 0, id, count };
         }
